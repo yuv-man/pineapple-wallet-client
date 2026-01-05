@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { authApi } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
+import { getApiUrl } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
 
 const loginSchema = z.object({
@@ -48,7 +49,7 @@ export default function LoginPage() {
   };
 
   const handleOAuthLogin = (provider: 'google' | 'github') => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+    const apiUrl = getApiUrl();
     window.location.href = `${apiUrl}/auth/${provider}`;
   };
 

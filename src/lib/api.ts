@@ -1,23 +1,49 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { useAuthStore } from "@/store/auth";
 
-// Get mode from environment (defaults to 'dev' in development)
-const MODE = process.env.NEXT_PUBLIC_MODE;
+// Get mode from environment (normalize to lowercase)
+const MODE = process.env.NEXT_PUBLIC_MODE?.toLowerCase();
 
 // Get API URL based on mode
 const getApiUrl = () => {
   if (MODE === "prod") {
-    return (
-      process.env.NEXT_PUBLIC_API_URL_PROD ||
-      process.env.NEXT_PUBLIC_API_URL ||
-      "http://localhost:3001/api"
-    );
+    // In production mode, ONLY use NEXT_PUBLIC_API_URL_PROD
+    // Don't fallback to NEXT_PUBLIC_API_URL as it might be a dev URL
+    const prodUrl = process.env.NEXT_PUBLIC_API_URL_PROD;
+    if (!prodUrl) {
+      const errorMsg =
+        "[API Config] ERROR: NEXT_PUBLIC_MODE is set to 'prod' but NEXT_PUBLIC_API_URL_PROD is not defined. " +
+        "Please set NEXT_PUBLIC_API_URL_PROD environment variable to your production API URL.";
+      console.error(errorMsg);
+      if (typeof window !== "undefined") {
+        // In browser, show error but don't crash - use a placeholder that will fail gracefully
+        console.error("Falling back to NEXT_PUBLIC_API_URL, but this may be incorrect:", process.env.NEXT_PUBLIC_API_URL);
+        return process.env.NEXT_PUBLIC_API_URL || "";
+      }
+      // In SSR/build, throw error to prevent incorrect configuration
+      throw new Error(errorMsg);
+    }
+    // Validate that prod URL is not localhost
+    if (prodUrl.includes("localhost") || prodUrl.includes("127.0.0.1")) {
+      console.warn(
+        "[API Config] WARNING: NEXT_PUBLIC_API_URL_PROD appears to be a localhost URL:",
+        prodUrl
+      );
+    }
+    if (typeof window !== "undefined") {
+      console.log("[API Config] Mode: prod, Using API URL:", prodUrl);
+    }
+    return prodUrl;
   }
-  return (
+  // Development mode - use dev URL or fallback to localhost
+  const devUrl =
     process.env.NEXT_PUBLIC_API_URL_DEV ||
     process.env.NEXT_PUBLIC_API_URL ||
-    "http://localhost:3001/api"
-  );
+    "http://localhost:3001/api";
+  if (typeof window !== "undefined") {
+    console.log("[API Config] Mode: dev, Using API URL:", devUrl);
+  }
+  return devUrl;
 };
 
 const API_URL = getApiUrl();
