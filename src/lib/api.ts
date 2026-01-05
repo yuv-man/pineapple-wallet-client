@@ -1,12 +1,31 @@
-import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
-import { useAuthStore } from '@/store/auth';
+import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
+import { useAuthStore } from "@/store/auth";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+// Get mode from environment (defaults to 'dev' in development)
+const MODE = process.env.NEXT_PUBLIC_MODE;
+
+// Get API URL based on mode
+const getApiUrl = () => {
+  if (MODE === "prod") {
+    return (
+      process.env.NEXT_PUBLIC_API_URL_PROD ||
+      process.env.NEXT_PUBLIC_API_URL ||
+      "http://localhost:3001/api"
+    );
+  }
+  return (
+    process.env.NEXT_PUBLIC_API_URL_DEV ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "http://localhost:3001/api"
+  );
+};
+
+const API_URL = getApiUrl();
 
 export const api = axios.create({
   baseURL: API_URL,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
@@ -43,8 +62,8 @@ api.interceptors.response.use(
         }
       } catch {
         useAuthStore.getState().logout();
-        if (typeof window !== 'undefined') {
-          window.location.href = '/login';
+        if (typeof window !== "undefined") {
+          window.location.href = "/login";
         }
       }
     }
@@ -56,30 +75,30 @@ api.interceptors.response.use(
 // Auth API
 export const authApi = {
   register: (data: { email: string; password: string; name: string }) =>
-    api.post('/auth/register', data),
+    api.post("/auth/register", data),
   login: (data: { email: string; password: string }) =>
-    api.post('/auth/login', data),
-  logout: (refreshToken?: string) => api.post('/auth/logout', { refreshToken }),
+    api.post("/auth/login", data),
+  logout: (refreshToken?: string) => api.post("/auth/logout", { refreshToken }),
   refresh: (refreshToken: string) =>
-    api.post('/auth/refresh', { refreshToken }),
+    api.post("/auth/refresh", { refreshToken }),
 };
 
 // Users API
 export const usersApi = {
-  getMe: () => api.get('/users/me'),
+  getMe: () => api.get("/users/me"),
   updateMe: (data: { name?: string; avatar?: string }) =>
-    api.patch('/users/me', data),
-  deleteMe: () => api.delete('/users/me'),
+    api.patch("/users/me", data),
+  deleteMe: () => api.delete("/users/me"),
   searchUsers: (email: string) =>
-    api.get('/users/search', { params: { email } }),
+    api.get("/users/search", { params: { email } }),
 };
 
 // Portfolios API
 export const portfoliosApi = {
-  getAll: () => api.get('/portfolios'),
+  getAll: () => api.get("/portfolios"),
   getOne: (id: string) => api.get(`/portfolios/${id}`),
   create: (data: { name: string; description?: string }) =>
-    api.post('/portfolios', data),
+    api.post("/portfolios", data),
   update: (id: string, data: { name?: string; description?: string }) =>
     api.patch(`/portfolios/${id}`, data),
   delete: (id: string) => api.delete(`/portfolios/${id}`),
@@ -124,26 +143,26 @@ export const sharingApi = {
   ) => api.post(`/portfolios/${portfolioId}/share`, data),
   getShares: (portfolioId: string) =>
     api.get(`/portfolios/${portfolioId}/shares`),
-  getInvitations: () => api.get('/invitations'),
+  getInvitations: () => api.get("/invitations"),
   respondToInvitation: (id: string, accept: boolean) =>
     api.patch(`/invitations/${id}`, { accept }),
   updateShare: (id: string, permission: string) =>
     api.patch(`/shares/${id}`, { permission }),
   revokeShare: (id: string) => api.delete(`/shares/${id}`),
-  getSharedWithMe: () => api.get('/shared-with-me'),
+  getSharedWithMe: () => api.get("/shared-with-me"),
 };
 
 // Currency API
 export const currencyApi = {
-  getSupportedCurrencies: () => api.get('/currency/supported'),
-  getExchangeRates: (baseCurrency: string = 'USD') =>
-    api.get('/currency/rates', { params: { base: baseCurrency } }),
+  getSupportedCurrencies: () => api.get("/currency/supported"),
+  getExchangeRates: (baseCurrency: string = "USD") =>
+    api.get("/currency/rates", { params: { base: baseCurrency } }),
   convert: (amount: number, from: string, to: string) =>
-    api.get('/currency/convert', { params: { amount, from, to } }),
-  getNetWorth: (currency: string = 'USD') =>
-    api.get('/currency/net-worth', { params: { currency } }),
-  getPortfolioSummary: (portfolioId: string, currency: string = 'USD') =>
-    api.get('/currency/portfolio-summary', {
+    api.get("/currency/convert", { params: { amount, from, to } }),
+  getNetWorth: (currency: string = "USD") =>
+    api.get("/currency/net-worth", { params: { currency } }),
+  getPortfolioSummary: (portfolioId: string, currency: string = "USD") =>
+    api.get("/currency/portfolio-summary", {
       params: { portfolioId, currency },
     }),
 };
