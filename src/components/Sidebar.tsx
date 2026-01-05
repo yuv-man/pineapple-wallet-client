@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -10,6 +11,8 @@ import {
   Bell,
   Settings,
   LogOut,
+  Menu,
+  X,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
 import { useRouter } from 'next/navigation';
@@ -26,6 +29,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout, refreshToken } = useAuthStore();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -37,68 +41,123 @@ export function Sidebar() {
     router.push('/login');
   };
 
-  return (
-    <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r border-gray-200 bg-white">
-      <div className="flex h-full flex-col">
-        {/* Logo */}
-        <div className="flex h-16 items-center gap-2 px-6 border-b border-gray-100">
-          <div className="w-8 h-8 bg-pineapple rounded-lg flex items-center justify-center">
-            <span className="text-lg">🍍</span>
-          </div>
-          <span className="text-lg font-bold text-gray-900">Pineapple</span>
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileMenuOpen]);
+
+  const sidebarContent = (
+    <div className="flex h-full flex-col">
+      {/* Logo */}
+      <div className="flex h-16 items-center gap-2 px-6 border-b border-gray-100">
+        <div className="w-8 h-8 bg-pineapple rounded-lg flex items-center justify-center">
+          <span className="text-lg">🍍</span>
         </div>
+        <span className="text-lg font-bold text-gray-900">Pineapple</span>
+      </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 space-y-1 px-3 py-4">
-          {navigation.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                  isActive
-                    ? 'bg-yellow-50 text-pineapple-dark'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                )}
-              >
-                <item.icon className="h-5 w-5" />
-                {item.name}
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* User section */}
-        <div className="border-t border-gray-100 p-4">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-full bg-pineapple/20 flex items-center justify-center text-pineapple-dark font-semibold">
-              {user?.name?.charAt(0).toUpperCase() || 'U'}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">
-                {user?.name}
-              </p>
-              <p className="text-xs text-gray-500 truncate">{user?.email}</p>
-            </div>
-          </div>
-          <div className="flex gap-2">
+      {/* Navigation */}
+      <nav className="flex-1 space-y-1 px-3 py-4">
+        {navigation.map((item) => {
+          const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+          return (
             <Link
-              href="/settings"
-              className="flex-1 btn btn-ghost text-sm justify-center"
+              key={item.name}
+              href={item.href}
+              className={cn(
+                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                isActive
+                  ? 'bg-yellow-50 text-pineapple-dark'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              )}
             >
-              <Settings className="h-4 w-4" />
+              <item.icon className="h-5 w-5" />
+              {item.name}
             </Link>
-            <button
-              onClick={handleLogout}
-              className="flex-1 btn btn-ghost text-sm text-red-600 hover:bg-red-50 justify-center"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
+          );
+        })}
+      </nav>
+
+      {/* User section */}
+      <div className="border-t border-gray-100 p-4">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-10 h-10 rounded-full bg-pineapple/20 flex items-center justify-center text-pineapple-dark font-semibold">
+            {user?.name?.charAt(0).toUpperCase() || 'U'}
           </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-900 truncate">
+              {user?.name}
+            </p>
+            <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Link
+            href="/settings"
+            className="flex-1 btn btn-ghost text-sm justify-center"
+          >
+            <Settings className="h-4 w-4" />
+          </Link>
+          <button
+            onClick={handleLogout}
+            className="flex-1 btn btn-ghost text-sm text-red-600 hover:bg-red-50 justify-center"
+          >
+            <LogOut className="h-4 w-4" />
+          </button>
         </div>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Mobile menu button */}
+      <button
+        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white border border-gray-200 shadow-sm hover:bg-gray-50"
+        aria-label="Toggle menu"
+      >
+        {isMobileMenuOpen ? (
+          <X className="h-6 w-6 text-gray-700" />
+        ) : (
+          <Menu className="h-6 w-6 text-gray-700" />
+        )}
+      </button>
+
+      {/* Mobile overlay */}
+      {isMobileMenuOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/50 z-40"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:flex fixed left-0 top-0 z-40 h-screen w-64 border-r border-gray-200 bg-white">
+        {sidebarContent}
+      </aside>
+
+      {/* Mobile Sidebar */}
+      <aside
+        className={cn(
+          'lg:hidden fixed left-0 top-0 z-40 h-screen w-64 border-r border-gray-200 bg-white transform transition-transform duration-300 ease-in-out',
+          isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        )}
+      >
+        {sidebarContent}
+      </aside>
+    </>
   );
 }

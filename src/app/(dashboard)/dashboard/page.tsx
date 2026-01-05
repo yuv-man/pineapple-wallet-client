@@ -100,20 +100,20 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600">Overview of your financial portfolio</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-sm sm:text-base text-gray-600">Overview of your financial portfolio</p>
         </div>
 
         {/* Currency Selector */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <div className="flex items-center gap-2">
-            <Globe className="h-5 w-5 text-gray-500" />
+            <Globe className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500" />
             <select
               value={selectedCurrency}
               onChange={(e) => handleCurrencyChange(e.target.value)}
-              className="input py-2 pr-8 min-w-[100px]"
+              className="input py-2 pr-8 min-w-[100px] text-sm sm:text-base"
               disabled={isRefreshing}
             >
               {POPULAR_CURRENCIES.map((curr) => (
@@ -129,7 +129,7 @@ export default function DashboardPage() {
             className="btn btn-outline p-2"
             title="Refresh rates"
           >
-            <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 sm:h-5 sm:w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
           </button>
         </div>
       </div>
@@ -223,11 +223,11 @@ export default function DashboardPage() {
               No assets yet
             </div>
           )}
-          <div className="mt-4 grid grid-cols-2 gap-2">
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
             {pieChartData.map((item, index) => (
               <div key={item.type} className="flex items-center gap-2">
                 <div
-                  className="w-3 h-3 rounded-full"
+                  className="w-3 h-3 rounded-full flex-shrink-0"
                   style={{ backgroundColor: COLORS[index % COLORS.length] }}
                 />
                 <span className="text-sm text-gray-600">{item.name}</span>
@@ -307,18 +307,18 @@ export default function DashboardPage() {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
             Assets by Type ({selectedCurrency})
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
             {Object.entries(netWorthData.byType).map(([type, data]) => {
               const Icon = ASSET_ICONS[type as AssetType] || PiggyBank;
               return (
                 <div key={type} className="card">
-                  <div className="flex items-center gap-3 mb-2">
-                    <Icon className="h-5 w-5 text-gray-600" />
-                    <span className="text-sm text-gray-600">
+                  <div className="flex items-center gap-2 sm:gap-3 mb-2">
+                    <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm text-gray-600 truncate">
                       {ASSET_TYPE_LABELS[type as AssetType] || type}
                     </span>
                   </div>
-                  <p className="text-xl font-bold text-gray-900">
+                  <p className="text-lg sm:text-xl font-bold text-gray-900 truncate">
                     {formatCurrency(data.totalValue, selectedCurrency)}
                   </p>
                   <p className="text-xs text-gray-500">{data.count} asset(s)</p>
