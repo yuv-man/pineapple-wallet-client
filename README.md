@@ -131,6 +131,20 @@ Run ESLint:
 npm run lint
 ```
 
+### Mobile app icon (Android / iOS)
+
+The app uses the Pineapple Wallet icon from `public/` for the web (favicon, PWA manifest, sidebar, and auth pages). For native launcher and splash icons on Android/iOS:
+
+1. Add a 1024×1024 PNG as `assets/logo.png` (e.g. export from `assets/pineapple-wallet-logo.webp`).
+2. Install and run the asset generator:
+
+```bash
+npm install --save-dev @capacitor/assets
+npm run assets:generate
+```
+
+This updates the icons in the `android/` (and `ios/` if present) projects.
+
 ## 📁 Project Structure
 
 ```

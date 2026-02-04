@@ -62,9 +62,11 @@ export function Sidebar() {
     <div className="flex h-full flex-col">
       {/* Logo */}
       <div className="flex h-16 items-center gap-2 px-6 border-b border-gray-100">
-        <div className="w-8 h-8 bg-pineapple rounded-lg flex items-center justify-center">
-          <span className="text-lg">🍍</span>
-        </div>
+        <img
+          src="/pineapple-wallet-icon.webp"
+          alt="Pineapple Wallet"
+          className="w-8 h-8 object-contain"
+        />
         <span className="text-lg font-bold text-gray-900">Pineapple</span>
       </div>
 
