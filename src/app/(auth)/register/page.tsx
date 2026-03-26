@@ -64,9 +64,11 @@ export default function RegisterPage() {
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="w-12 h-12 bg-pineapple rounded-xl flex items-center justify-center">
-              <span className="text-3xl">🍍</span>
-            </div>
+            <img
+              src="/pineapple-wallet-icon.webp"
+              alt="Pineapple Wallet"
+              className="w-12 h-12 object-contain"
+            />
           </Link>
           <h1 className="text-3xl font-bold text-gray-900">Create an account</h1>
           <p className="text-gray-600 mt-2">Start managing your wealth today</p>

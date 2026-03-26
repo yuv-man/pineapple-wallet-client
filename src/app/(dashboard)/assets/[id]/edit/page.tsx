@@ -1,4 +1,4 @@
-import EditAssetClient from '@/components/pages/EditAssetClient';
+import EditAssetClient from "@/components/pages/EditAssetClient";
 
 // Required for static export - allows client-side routing for dynamic IDs
 export function generateStaticParams() {

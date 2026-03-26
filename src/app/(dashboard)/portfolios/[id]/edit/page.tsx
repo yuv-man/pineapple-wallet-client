@@ -1,4 +1,4 @@
-import EditPortfolioClient from '@/components/pages/EditPortfolioClient';
+import EditPortfolioClient from "@/components/pages/EditPortfolioClient";
 
 // Required for static export - allows client-side routing for dynamic IDs
 export function generateStaticParams() {

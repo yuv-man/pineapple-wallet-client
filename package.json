@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev -p 3001",
     "build": "next build",
+    "build:mobile": "npm run build && npx cap sync",
     "start": "next start -p 3001",
     "lint": "next lint",
     "build:android": "CAPACITOR_BUILD=true npx cap sync android",

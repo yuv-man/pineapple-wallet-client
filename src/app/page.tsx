@@ -28,9 +28,11 @@ export default function HomePage() {
       <header className="container mx-auto px-4 py-4 sm:py-6">
         <nav className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-pineapple rounded-xl flex items-center justify-center">
-              <span className="text-xl sm:text-2xl">🍍</span>
-            </div>
+            <img
+              src="/pineapple-wallet-icon.webp"
+              alt="Pineapple Wallet"
+              className="w-8 h-8 sm:w-10 sm:h-10 object-contain"
+            />
             <span className="text-lg sm:text-xl font-bold text-gray-900">
               Pineapple Wallet
             </span>
