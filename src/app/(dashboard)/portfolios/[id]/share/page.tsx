@@ -1,8 +1,7 @@
 import SharePortfolioClient from "@/components/pages/SharePortfolioClient";
 
-// Required for static export - allows client-side routing for dynamic IDs
-export function generateStaticParams() {
-  return [];
+export async function generateStaticParams() {
+  return [{ id: "__placeholder__" }];
 }
 
 export default function SharePortfolioPage() {

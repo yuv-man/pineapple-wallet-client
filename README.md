@@ -5,7 +5,6 @@ A modern, full-featured financial portfolio management application built with Ne
 ## 🍍 Features
 
 - **Unified Asset Tracking**: Manage all your financial assets in one dashboard
-
   - Bank accounts
   - Real estate
   - Cryptocurrency
@@ -13,25 +12,21 @@ A modern, full-featured financial portfolio management application built with Ne
   - Custom asset types
 
 - **Portfolio Management**: Create and organize multiple portfolios
-
   - Add, edit, and delete portfolios
   - Track asset values and history
   - Visual analytics with charts and graphs
 
 - **Collaborative Sharing**: Share portfolios with partners
-
   - Invite users via email
   - Control access permissions (view/edit)
   - Manage invitations and shared portfolios
 
 - **Multi-Currency Support**:
-
   - Track assets in different currencies
   - Automatic currency conversion
   - View net worth in your preferred currency
 
 - **Secure Authentication**:
-
   - JWT-based authentication with refresh tokens
   - Protected routes and API endpoints
   - Persistent session management
@@ -90,12 +85,12 @@ Edit `.env` and configure:
 NEXT_PUBLIC_MODE=dev
 
 # API URLs
-NEXT_PUBLIC_API_URL=http://localhost:3001/api
-NEXT_PUBLIC_API_URL_DEV=http://localhost:3001/api
+NEXT_PUBLIC_API_URL=http://localhost:3003/api
+NEXT_PUBLIC_API_URL_DEV=http://localhost:3003/api
 NEXT_PUBLIC_API_URL_PROD=https://api.yourdomain.com/api
 
 # Public URLs (for OAuth callbacks, etc.)
-NEXT_PUBLIC_PUBLIC_URL_DEV=http://localhost:3001
+NEXT_PUBLIC_PUBLIC_URL_DEV=http://localhost:3003
 NEXT_PUBLIC_PUBLIC_URL_PROD=https://yourdomain.com
 ```
 
@@ -107,7 +102,7 @@ Run the development server:
 npm run dev
 ```
 
-Open [http://localhost:3001](http://localhost:3001) in your browser.
+Open [http://localhost:3003](http://localhost:3003) in your browser.
 
 ### Build
 
@@ -221,18 +216,17 @@ The project uses Tailwind CSS with custom configuration:
 | Variable                      | Description                                       | Default                     |
 | ----------------------------- | ------------------------------------------------- | --------------------------- |
 | `NEXT_PUBLIC_MODE`            | Application mode: 'dev' or 'prod'                 | 'dev' (auto-detected)       |
-| `NEXT_PUBLIC_API_URL`         | Backend API base URL (fallback)                   | `http://localhost:3001/api` |
-| `NEXT_PUBLIC_API_URL_DEV`     | Backend API URL for development mode              | `http://localhost:3001/api` |
-| `NEXT_PUBLIC_API_URL_PROD`    | Backend API URL for production mode               | `http://localhost:3001/api` |
-| `NEXT_PUBLIC_PUBLIC_URL_DEV`  | Public frontend URL for development (OAuth, etc.) | `http://localhost:3001`     |
-| `NEXT_PUBLIC_PUBLIC_URL_PROD` | Public frontend URL for production (OAuth, etc.)  | `http://localhost:3001`     |
+| `NEXT_PUBLIC_API_URL`         | Backend API base URL (fallback)                   | `http://localhost:3003/api` |
+| `NEXT_PUBLIC_API_URL_DEV`     | Backend API URL for development mode              | `http://localhost:3003/api` |
+| `NEXT_PUBLIC_API_URL_PROD`    | Backend API URL for production mode               | `http://localhost:3003/api` |
+| `NEXT_PUBLIC_PUBLIC_URL_DEV`  | Public frontend URL for development (OAuth, etc.) | `http://localhost:3003`     |
+| `NEXT_PUBLIC_PUBLIC_URL_PROD` | Public frontend URL for production (OAuth, etc.)  | `http://localhost:3003      |
 
 ### Mode Configuration
 
 The application uses `NEXT_PUBLIC_MODE` to switch between development and production configurations:
 
 - **Development Mode** (`NEXT_PUBLIC_MODE=dev`):
-
   - Uses `NEXT_PUBLIC_API_URL_DEV` for API calls
   - Uses `NEXT_PUBLIC_PUBLIC_URL_DEV` for public URLs
   - Defaults to 'dev' if not set and `NODE_ENV !== 'production'`

@@ -106,7 +106,7 @@ export default function LoginPage() {
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
             <img
-              src="/pineapple-wallet-icon.webp"
+              src="/favicon.ico"
               alt="Pineapple Wallet"
               className="w-12 h-12 object-contain"
             />

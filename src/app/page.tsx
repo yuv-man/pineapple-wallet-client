@@ -29,7 +29,7 @@ export default function HomePage() {
         <nav className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <img
-              src="/pineapple-wallet-icon.webp"
+              src="/favicon.ico"
               alt="Pineapple Wallet"
               className="w-8 h-8 sm:w-10 sm:h-10 object-contain"
             />

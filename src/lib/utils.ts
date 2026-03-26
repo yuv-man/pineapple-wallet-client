@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatCurrency(
   value: number,
-  currency: string = "USD"
+  currency: string = "USD",
 ): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -53,6 +53,21 @@ export function getMode(): "dev" | "prod" {
 }
 
 /**
+ * True when the UI is loaded from a local dev machine (browser or Capacitor → localhost).
+ * `next build` inlines NEXT_PUBLIC_* from .env.production, so MODE is often "prod" in the
+ * bundle even when you intend to run against localhost — this uses runtime hostname instead.
+ */
+export function isLocalFrontendHost(): boolean {
+  if (typeof window === "undefined") return false;
+  const h = window.location.hostname;
+  return (
+    h === "localhost" ||
+    h === "127.0.0.1" ||
+    h === "10.0.2.2" // Android emulator → host loopback
+  );
+}
+
+/**
  * Nest uses setGlobalPrefix('api'). Base URL must end with /api so requests
  * hit the API (e.g. GET /api/portfolios/:id), not the Next.js dev server (404).
  */
@@ -67,6 +82,20 @@ export function withNestApiPrefix(baseUrl: string): string {
  * Get the API URL based on the current mode
  */
 export function getApiUrl(): string {
+  // Runtime: always use local Nest when the app is opened on localhost, regardless of
+  // build-time NEXT_PUBLIC_MODE (production builds still embed MODE=prod from .env.production).
+  if (isLocalFrontendHost()) {
+    const devUrl =
+      process.env.NEXT_PUBLIC_API_URL_DEV ||
+      process.env.NEXT_PUBLIC_API_URL ||
+      "http://localhost:5001/api";
+    const resolved = withNestApiPrefix(devUrl);
+    if (typeof window !== "undefined") {
+      console.log("[API Config] Local host, Using API URL:", resolved);
+    }
+    return resolved;
+  }
+
   const mode = getMode();
   if (mode === "prod") {
     // In production mode, ONLY use NEXT_PUBLIC_API_URL_PROD
@@ -78,7 +107,10 @@ export function getApiUrl(): string {
       console.error(errorMsg);
       if (typeof window !== "undefined") {
         // In browser, show error but don't crash - use fallback
-        console.error("Falling back to NEXT_PUBLIC_API_URL, but this may be incorrect:", process.env.NEXT_PUBLIC_API_URL);
+        console.error(
+          "Falling back to NEXT_PUBLIC_API_URL, but this may be incorrect:",
+          process.env.NEXT_PUBLIC_API_URL,
+        );
         const fallback = process.env.NEXT_PUBLIC_API_URL || "";
         return fallback ? withNestApiPrefix(fallback) : "";
       }
@@ -89,7 +121,7 @@ export function getApiUrl(): string {
     if (prodUrl.includes("localhost") || prodUrl.includes("127.0.0.1")) {
       console.warn(
         "[API Config] WARNING: NEXT_PUBLIC_API_URL_PROD appears to be a localhost URL:",
-        prodUrl
+        prodUrl,
       );
     }
     const resolved = withNestApiPrefix(prodUrl);
@@ -98,7 +130,7 @@ export function getApiUrl(): string {
     }
     return resolved;
   }
-  // Development: default port matches backend PORT (5001), not the Next.js dev server (3001)
+  // Development: default port matches backend PORT (5003), not the Next.js dev server (3003)
   const devUrl =
     process.env.NEXT_PUBLIC_API_URL_DEV ||
     process.env.NEXT_PUBLIC_API_URL ||
@@ -115,15 +147,23 @@ export function getApiUrl(): string {
  * Useful for OAuth callbacks, sharing links, etc.
  */
 export function getPublicUrl(): string {
+  if (isLocalFrontendHost()) {
+    return (
+      process.env.NEXT_PUBLIC_PUBLIC_URL_DEV ||
+      (typeof window !== "undefined"
+        ? window.location.origin
+        : "http://localhost:3003")
+    );
+  }
   const mode = getMode();
   if (mode === "prod") {
     return (
       process.env.NEXT_PUBLIC_PUBLIC_URL_PROD ||
       process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") ||
-      "http://localhost:3001"
+      "http://localhost:3003"
     );
   }
-  return process.env.NEXT_PUBLIC_PUBLIC_URL_DEV || "http://localhost:3001";
+  return process.env.NEXT_PUBLIC_PUBLIC_URL_DEV || "http://localhost:3003";
 }
 
 /**

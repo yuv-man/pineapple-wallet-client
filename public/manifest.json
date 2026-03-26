@@ -12,18 +12,6 @@
       "sizes": "48x48",
       "type": "image/x-icon",
       "purpose": "any"
-    },
-    {
-      "src": "/pineapple-wallet-icon.webp",
-      "sizes": "192x192",
-      "type": "image/webp",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/pineapple-wallet-icon.webp",
-      "sizes": "512x512",
-      "type": "image/webp",
-      "purpose": "any maskable"
     }
   ]
 }

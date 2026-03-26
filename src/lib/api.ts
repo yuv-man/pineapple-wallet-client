@@ -2,16 +2,14 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { useAuthStore } from "@/store/auth";
 import { getApiUrl } from "@/lib/utils";
 
-const API_URL = getApiUrl();
-
 export const api = axios.create({
-  baseURL: API_URL,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  config.baseURL = getApiUrl();
   const token = useAuthStore.getState().accessToken;
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -32,7 +30,7 @@ api.interceptors.response.use(
       try {
         const refreshToken = useAuthStore.getState().refreshToken;
         if (refreshToken) {
-          const response = await axios.post(`${API_URL}/auth/refresh`, {
+          const response = await axios.post(`${getApiUrl()}/auth/refresh`, {
             refreshToken,
           });
 

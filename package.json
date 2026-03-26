@@ -3,10 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3001",
+    "dev": "next dev -p 3003",
     "build": "next build",
+    "build:static": "CAPACITOR_STATIC_EXPORT=true next build",
     "build:mobile": "npm run build && npx cap sync",
-    "start": "next start -p 3001",
+    "prestart:static": "node -e \"const fs=require('fs');const p=require('path');if(!fs.existsSync(p.join('out','index.html'))){console.log('No out/ — run: npm run build:static');process.exit(1)}\"",
+    "start": "next start -p 3003",
+    "start:static": "npm run prestart:static && serve out -p 3003",
     "lint": "next lint",
     "build:android": "CAPACITOR_BUILD=true npx cap sync android",
     "build:ios": "CAPACITOR_BUILD=true npx cap sync ios",
@@ -20,6 +23,9 @@
     "@capacitor/cli": "^8.2.0",
     "@capacitor/core": "^8.2.0",
     "@capacitor/ios": "^8.2.0",
+    "@capacitor/keyboard": "^8.0.2",
+    "@capacitor/splash-screen": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.2",
     "@hookform/resolvers": "^3.3.4",
     "axios": "^1.6.5",
     "clsx": "^2.1.0",
@@ -41,6 +47,7 @@
     "eslint": "^8.56.0",
     "eslint-config-next": "14.1.0",
     "postcss": "^8.4.33",
+    "serve": "^14.2.6",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.3.3"
   }

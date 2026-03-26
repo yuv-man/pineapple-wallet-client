@@ -63,7 +63,7 @@ export function Sidebar() {
       {/* Logo */}
       <div className="flex h-16 items-center gap-2 px-6 border-b border-gray-100">
         <img
-          src="/pineapple-wallet-icon.webp"
+          src="/favicon.ico"
           alt="Pineapple Wallet"
           className="w-8 h-8 object-contain"
         />

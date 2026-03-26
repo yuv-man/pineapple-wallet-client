@@ -1,8 +1,8 @@
 import EditAssetClient from "@/components/pages/EditAssetClient";
 
-// Required for static export - allows client-side routing for dynamic IDs
-export function generateStaticParams() {
-  return [];
+// Static export: Next requires at least one param; real IDs still work client-side.
+export async function generateStaticParams() {
+  return [{ id: "__placeholder__" }];
 }
 
 export default function EditAssetPage() {
