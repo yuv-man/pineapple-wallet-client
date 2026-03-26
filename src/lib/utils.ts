@@ -53,8 +53,18 @@ export function getMode(): "dev" | "prod" {
 }
 
 /**
+ * Nest uses setGlobalPrefix('api'). Base URL must end with /api so requests
+ * hit the API (e.g. GET /api/portfolios/:id), not the Next.js dev server (404).
+ */
+export function withNestApiPrefix(baseUrl: string): string {
+  const u = baseUrl.trim().replace(/\/+$/, "");
+  if (!u) return u;
+  if (/\/api$/i.test(u)) return u;
+  return `${u}/api`;
+}
+
+/**
  * Get the API URL based on the current mode
- * Matches the logic used in api.ts
  */
 export function getApiUrl(): string {
   const mode = getMode();
@@ -69,7 +79,8 @@ export function getApiUrl(): string {
       if (typeof window !== "undefined") {
         // In browser, show error but don't crash - use fallback
         console.error("Falling back to NEXT_PUBLIC_API_URL, but this may be incorrect:", process.env.NEXT_PUBLIC_API_URL);
-        return process.env.NEXT_PUBLIC_API_URL || "";
+        const fallback = process.env.NEXT_PUBLIC_API_URL || "";
+        return fallback ? withNestApiPrefix(fallback) : "";
       }
       // In SSR/build, throw error to prevent incorrect configuration
       throw new Error(errorMsg);
@@ -81,20 +92,22 @@ export function getApiUrl(): string {
         prodUrl
       );
     }
+    const resolved = withNestApiPrefix(prodUrl);
     if (typeof window !== "undefined") {
-      console.log("[API Config] Mode: prod, Using API URL:", prodUrl);
+      console.log("[API Config] Mode: prod, Using API URL:", resolved);
     }
-    return prodUrl;
+    return resolved;
   }
-  // Development mode - use dev URL or fallback to localhost
+  // Development: default port matches backend PORT (5001), not the Next.js dev server (3001)
   const devUrl =
     process.env.NEXT_PUBLIC_API_URL_DEV ||
     process.env.NEXT_PUBLIC_API_URL ||
-    "http://localhost:3001/api";
+    "http://localhost:5001/api";
+  const resolved = withNestApiPrefix(devUrl);
   if (typeof window !== "undefined") {
-    console.log("[API Config] Mode: dev, Using API URL:", devUrl);
+    console.log("[API Config] Mode: dev, Using API URL:", resolved);
   }
-  return devUrl;
+  return resolved;
 }
 
 /**
