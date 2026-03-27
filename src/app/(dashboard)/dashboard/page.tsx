@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { currencyApi } from '@/lib/api';
+import { useAuthStore } from '@/store/auth';
 import { AssetType, ASSET_TYPE_LABELS } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import {
@@ -36,7 +37,7 @@ const ASSET_ICONS: Record<AssetType, React.ElementType> = {
   [AssetType.INVESTMENT]: PiggyBank,
 };
 
-const POPULAR_CURRENCIES = ['USD', 'EUR', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD', 'BTC', 'ETH'];
+const POPULAR_CURRENCIES = ['USD', 'EUR', 'GBP', 'ILS', 'JPY', 'CHF', 'CAD', 'AUD'];
 
 interface NetWorthData {
   totalNetWorth: number;
@@ -48,8 +49,9 @@ interface NetWorthData {
 }
 
 export default function DashboardPage() {
+  const { user } = useAuthStore();
   const [netWorthData, setNetWorthData] = useState<NetWorthData | null>(null);
-  const [selectedCurrency, setSelectedCurrency] = useState('USD');
+  const [selectedCurrency, setSelectedCurrency] = useState(user?.displayCurrency || 'USD');
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -70,8 +72,11 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    fetchNetWorth(selectedCurrency);
-  }, []);
+    // Use user's preferred currency or default to USD
+    const currency = user?.displayCurrency || 'USD';
+    setSelectedCurrency(currency);
+    fetchNetWorth(currency);
+  }, [user?.displayCurrency]);
 
   const handleCurrencyChange = (currency: string) => {
     setSelectedCurrency(currency);

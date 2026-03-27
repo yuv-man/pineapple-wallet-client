@@ -3,11 +3,13 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth';
+import { useCurrencyStore } from '@/store/currency';
 import { Loader2 } from 'lucide-react';
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
+  const { fetchRates, shouldRefresh } = useCurrencyStore();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -17,11 +19,16 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
         router.push('/login');
       } else {
         setIsLoading(false);
+
+        // Fetch exchange rates on app entrance if needed (daily refresh)
+        if (shouldRefresh()) {
+          fetchRates('USD');
+        }
       }
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, router, fetchRates, shouldRefresh]);
 
   if (isLoading) {
     return (

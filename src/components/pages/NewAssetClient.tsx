@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { assetsApi } from '@/lib/api';
+import { useCurrencyStore } from '@/store/currency';
 import { AssetType, ASSET_TYPE_LABELS } from '@/types';
 import {
   ArrowLeft,
@@ -16,6 +17,7 @@ import {
   Bitcoin,
   TrendingUp,
   PiggyBank,
+  RefreshCw,
 } from 'lucide-react';
 
 const ASSET_ICONS: Record<AssetType, React.ElementType> = {
@@ -37,7 +39,8 @@ const assetSchema = z.object({
 
 type AssetForm = z.infer<typeof assetSchema>;
 
-const CURRENCIES = ['USD', 'EUR', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD', 'BTC', 'ETH'];
+const FIAT_CURRENCIES = ['USD', 'EUR', 'GBP', 'ILS', 'JPY', 'CHF', 'CAD', 'AUD'];
+const CRYPTO_SYMBOLS = ['BTC', 'ETH', 'USDT', 'BNB', 'XRP', 'ADA', 'SOL', 'DOGE'];
 
 export default function NewAssetClient() {
   const params = useParams();
@@ -45,6 +48,15 @@ export default function NewAssetClient() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedType, setSelectedType] = useState<AssetType | null>(null);
+
+  // Crypto-specific state
+  const [cryptoInputMode, setCryptoInputMode] = useState<'crypto' | 'fiat'>('crypto');
+  const [cryptoAmount, setCryptoAmount] = useState<string>('');
+  const [fiatValue, setFiatValue] = useState<string>('');
+  const [selectedCryptoSymbol, setSelectedCryptoSymbol] = useState<string>('BTC');
+  const [selectedFiatCurrency, setSelectedFiatCurrency] = useState<string>('USD');
+
+  const { getCryptoPrice, rates, fetchRates, isLoading: ratesLoading } = useCurrencyStore();
 
   const portfolioId = params.id as string;
 
@@ -59,6 +71,37 @@ export default function NewAssetClient() {
       currency: 'USD',
     },
   });
+
+  // Auto-convert between crypto and fiat
+  useEffect(() => {
+    if (selectedType !== AssetType.CRYPTO || !rates) return;
+
+    const cryptoPrice = getCryptoPrice(selectedCryptoSymbol, selectedFiatCurrency);
+    if (cryptoPrice <= 0) return;
+
+    if (cryptoInputMode === 'crypto' && cryptoAmount) {
+      const amount = parseFloat(cryptoAmount);
+      if (!isNaN(amount)) {
+        const calculatedFiat = amount * cryptoPrice;
+        setFiatValue(calculatedFiat.toFixed(2));
+        // Set the form value (store fiat value in the asset)
+        setValue('value', calculatedFiat);
+        setValue('currency', selectedFiatCurrency);
+        setValue('details.quantity', amount);
+        setValue('details.symbol', selectedCryptoSymbol);
+      }
+    } else if (cryptoInputMode === 'fiat' && fiatValue) {
+      const fiat = parseFloat(fiatValue);
+      if (!isNaN(fiat)) {
+        const calculatedCrypto = fiat / cryptoPrice;
+        setCryptoAmount(calculatedCrypto.toFixed(8));
+        setValue('value', fiat);
+        setValue('currency', selectedFiatCurrency);
+        setValue('details.quantity', calculatedCrypto);
+        setValue('details.symbol', selectedCryptoSymbol);
+      }
+    }
+  }, [cryptoInputMode, cryptoAmount, fiatValue, selectedCryptoSymbol, selectedFiatCurrency, rates, getCryptoPrice, setValue, selectedType]);
 
   const onSubmit = async (data: AssetForm) => {
     setIsLoading(true);
@@ -159,46 +202,68 @@ export default function NewAssetClient() {
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="value" className="label">
-                    Current Value
-                  </label>
-                  <input
-                    id="value"
-                    type="number"
-                    step="0.01"
-                    className="input mt-1"
-                    placeholder="0.00"
-                    {...register('value', { valueAsNumber: true })}
-                  />
-                  {errors.value && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.value.message}
-                    </p>
-                  )}
-                </div>
+              {/* For crypto, show special input with conversion */}
+              {selectedType === AssetType.CRYPTO ? (
+                <CryptoValueInput
+                  cryptoInputMode={cryptoInputMode}
+                  setCryptoInputMode={setCryptoInputMode}
+                  cryptoAmount={cryptoAmount}
+                  setCryptoAmount={setCryptoAmount}
+                  fiatValue={fiatValue}
+                  setFiatValue={setFiatValue}
+                  selectedCryptoSymbol={selectedCryptoSymbol}
+                  setSelectedCryptoSymbol={setSelectedCryptoSymbol}
+                  selectedFiatCurrency={selectedFiatCurrency}
+                  setSelectedFiatCurrency={setSelectedFiatCurrency}
+                  getCryptoPrice={getCryptoPrice}
+                  fetchRates={fetchRates}
+                  ratesLoading={ratesLoading}
+                  errors={errors}
+                />
+              ) : (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="value" className="label">
+                      Current Value
+                    </label>
+                    <input
+                      id="value"
+                      type="number"
+                      step="0.01"
+                      className="input mt-1"
+                      placeholder="0.00"
+                      {...register('value', { valueAsNumber: true })}
+                    />
+                    {errors.value && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.value.message}
+                      </p>
+                    )}
+                  </div>
 
-                <div>
-                  <label htmlFor="currency" className="label">
-                    Currency
-                  </label>
-                  <select
-                    id="currency"
-                    className="input mt-1"
-                    {...register('currency')}
-                  >
-                    {CURRENCIES.map((curr) => (
-                      <option key={curr} value={curr}>
-                        {curr}
-                      </option>
-                    ))}
-                  </select>
+                  <div>
+                    <label htmlFor="currency" className="label">
+                      Currency
+                    </label>
+                    <select
+                      id="currency"
+                      className="input mt-1"
+                      {...register('currency')}
+                    >
+                      {FIAT_CURRENCIES.map((curr) => (
+                        <option key={curr} value={curr}>
+                          {curr}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {/* Type-specific fields */}
-              <TypeSpecificFields type={selectedType} register={register} />
+              {/* Type-specific fields (excluding crypto which is handled above) */}
+              {selectedType !== AssetType.CRYPTO && (
+                <TypeSpecificFields type={selectedType} register={register} />
+              )}
 
               <div>
                 <label htmlFor="notes" className="label">
@@ -327,29 +392,8 @@ function TypeSpecificFields({
       );
 
     case AssetType.CRYPTO:
-      return (
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="label">Symbol</label>
-            <input
-              type="text"
-              className="input mt-1"
-              placeholder="e.g., BTC"
-              {...register('details.symbol')}
-            />
-          </div>
-          <div>
-            <label className="label">Quantity</label>
-            <input
-              type="number"
-              step="0.00000001"
-              className="input mt-1"
-              placeholder="0.00"
-              {...register('details.quantity', { valueAsNumber: true })}
-            />
-          </div>
-        </div>
-      );
+      // Crypto fields are handled separately with CryptoValueInput
+      return null;
 
     case AssetType.STOCK:
       return (
@@ -406,4 +450,195 @@ function TypeSpecificFields({
     default:
       return null;
   }
+}
+
+interface CryptoValueInputProps {
+  cryptoInputMode: 'crypto' | 'fiat';
+  setCryptoInputMode: (mode: 'crypto' | 'fiat') => void;
+  cryptoAmount: string;
+  setCryptoAmount: (value: string) => void;
+  fiatValue: string;
+  setFiatValue: (value: string) => void;
+  selectedCryptoSymbol: string;
+  setSelectedCryptoSymbol: (symbol: string) => void;
+  selectedFiatCurrency: string;
+  setSelectedFiatCurrency: (currency: string) => void;
+  getCryptoPrice: (symbol: string, fiat: string) => number;
+  fetchRates: (base?: string) => Promise<void>;
+  ratesLoading: boolean;
+  errors: any;
+}
+
+function CryptoValueInput({
+  cryptoInputMode,
+  setCryptoInputMode,
+  cryptoAmount,
+  setCryptoAmount,
+  fiatValue,
+  setFiatValue,
+  selectedCryptoSymbol,
+  setSelectedCryptoSymbol,
+  selectedFiatCurrency,
+  setSelectedFiatCurrency,
+  getCryptoPrice,
+  fetchRates,
+  ratesLoading,
+  errors,
+}: CryptoValueInputProps) {
+  const cryptoPrice = getCryptoPrice(selectedCryptoSymbol, selectedFiatCurrency);
+
+  const handleCryptoAmountChange = (value: string) => {
+    setCryptoAmount(value);
+    // Fiat will be calculated via useEffect
+  };
+
+  const handleFiatValueChange = (value: string) => {
+    setFiatValue(value);
+    // Crypto will be calculated via useEffect
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Input Mode Toggle */}
+      <div>
+        <label className="label mb-2 block">Enter value as</label>
+        <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setCryptoInputMode('crypto')}
+            className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+              cryptoInputMode === 'crypto'
+                ? 'bg-pineapple text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            Crypto Amount
+          </button>
+          <button
+            type="button"
+            onClick={() => setCryptoInputMode('fiat')}
+            className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+              cryptoInputMode === 'fiat'
+                ? 'bg-pineapple text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            Fiat Value
+          </button>
+        </div>
+      </div>
+
+      {/* Crypto Symbol Selection */}
+      <div>
+        <label className="label">Cryptocurrency</label>
+        <select
+          className="input mt-1"
+          value={selectedCryptoSymbol}
+          onChange={(e) => setSelectedCryptoSymbol(e.target.value)}
+        >
+          {CRYPTO_SYMBOLS.map((symbol) => (
+            <option key={symbol} value={symbol}>
+              {symbol}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Value Input */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="label">
+            {cryptoInputMode === 'crypto' ? 'Amount' : 'Value'}
+            {cryptoInputMode === 'crypto' && (
+              <span className="text-gray-500 ml-1">({selectedCryptoSymbol})</span>
+            )}
+          </label>
+          {cryptoInputMode === 'crypto' ? (
+            <input
+              type="number"
+              step="0.00000001"
+              className="input mt-1"
+              placeholder="0.00000000"
+              value={cryptoAmount}
+              onChange={(e) => handleCryptoAmountChange(e.target.value)}
+            />
+          ) : (
+            <input
+              type="number"
+              step="0.01"
+              className="input mt-1"
+              placeholder="0.00"
+              value={fiatValue}
+              onChange={(e) => handleFiatValueChange(e.target.value)}
+            />
+          )}
+          {errors.value && (
+            <p className="text-red-500 text-sm mt-1">{errors.value.message}</p>
+          )}
+        </div>
+
+        <div>
+          <label className="label">Display Currency</label>
+          <select
+            className="input mt-1"
+            value={selectedFiatCurrency}
+            onChange={(e) => setSelectedFiatCurrency(e.target.value)}
+          >
+            {FIAT_CURRENCIES.map((curr) => (
+              <option key={curr} value={curr}>
+                {curr}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Conversion Preview */}
+      <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm text-gray-600">Live Conversion</span>
+          <button
+            type="button"
+            onClick={() => fetchRates('USD')}
+            disabled={ratesLoading}
+            className="text-pineapple hover:text-pineapple-dark text-sm flex items-center gap-1"
+          >
+            <RefreshCw className={`h-3 w-3 ${ratesLoading ? 'animate-spin' : ''}`} />
+            Refresh rates
+          </button>
+        </div>
+
+        {cryptoPrice > 0 ? (
+          <div className="space-y-1">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Crypto Amount:</span>
+              <span className="font-medium">
+                {cryptoAmount || '0'} {selectedCryptoSymbol}
+              </span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Fiat Value:</span>
+              <span className="font-medium">
+                {selectedFiatCurrency} {fiatValue || '0.00'}
+              </span>
+            </div>
+            <div className="flex justify-between text-xs text-gray-500 pt-2 border-t border-gray-200 mt-2">
+              <span>Rate:</span>
+              <span>
+                1 {selectedCryptoSymbol} = {selectedFiatCurrency}{' '}
+                {cryptoPrice.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </span>
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-amber-600">
+            Exchange rates unavailable. Please refresh rates.
+          </p>
+        )}
+      </div>
+    </div>
+  );
 }

@@ -7,13 +7,36 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { usersApi, authApi } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
-import { Loader2, User, Trash2 } from 'lucide-react';
+import { Loader2, Trash2, Globe } from 'lucide-react';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(100),
 });
 
 type ProfileForm = z.infer<typeof profileSchema>;
+
+const DISPLAY_CURRENCIES = [
+  { code: 'USD', name: 'US Dollar', symbol: '$' },
+  { code: 'EUR', name: 'Euro', symbol: '€' },
+  { code: 'GBP', name: 'British Pound', symbol: '£' },
+  { code: 'ILS', name: 'Israeli Shekel', symbol: '₪' },
+  { code: 'JPY', name: 'Japanese Yen', symbol: '¥' },
+  { code: 'CHF', name: 'Swiss Franc', symbol: 'CHF' },
+  { code: 'CAD', name: 'Canadian Dollar', symbol: 'C$' },
+  { code: 'AUD', name: 'Australian Dollar', symbol: 'A$' },
+  { code: 'CNY', name: 'Chinese Yuan', symbol: '¥' },
+  { code: 'INR', name: 'Indian Rupee', symbol: '₹' },
+  { code: 'KRW', name: 'South Korean Won', symbol: '₩' },
+  { code: 'SGD', name: 'Singapore Dollar', symbol: 'S$' },
+  { code: 'HKD', name: 'Hong Kong Dollar', symbol: 'HK$' },
+  { code: 'SEK', name: 'Swedish Krona', symbol: 'kr' },
+  { code: 'NOK', name: 'Norwegian Krone', symbol: 'kr' },
+  { code: 'DKK', name: 'Danish Krone', symbol: 'kr' },
+  { code: 'PLN', name: 'Polish Złoty', symbol: 'zł' },
+  { code: 'ZAR', name: 'South African Rand', symbol: 'R' },
+  { code: 'MXN', name: 'Mexican Peso', symbol: '$' },
+  { code: 'BRL', name: 'Brazilian Real', symbol: 'R$' },
+];
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -23,6 +46,8 @@ export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [displayCurrency, setDisplayCurrency] = useState(user?.displayCurrency || 'USD');
+  const [isSavingCurrency, setIsSavingCurrency] = useState(false);
 
   const {
     register,
@@ -71,6 +96,24 @@ export default function SettingsPage() {
     }
     logout();
     router.push('/login');
+  };
+
+  const handleCurrencyChange = async (currency: string) => {
+    setDisplayCurrency(currency);
+    setIsSavingCurrency(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const response = await usersApi.updateMe({ displayCurrency: currency });
+      setUser(response.data);
+      setSuccess('Display currency updated');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to update currency');
+      setDisplayCurrency(user?.displayCurrency || 'USD'); // Revert on error
+    } finally {
+      setIsSavingCurrency(false);
+    }
   };
 
   return (
@@ -148,6 +191,43 @@ export default function SettingsPage() {
             )}
           </button>
         </form>
+      </div>
+
+      {/* Preferences Section */}
+      <div className="card mb-6">
+        <div className="flex items-center gap-3 mb-4">
+          <Globe className="h-5 w-5 text-pineapple" />
+          <h2 className="text-lg font-semibold text-gray-900">Preferences</h2>
+        </div>
+
+        <div>
+          <label htmlFor="displayCurrency" className="label">
+            Display Currency
+          </label>
+          <p className="text-gray-500 text-sm mb-2">
+            Choose the currency used to display your total asset values
+          </p>
+          <div className="relative">
+            <select
+              id="displayCurrency"
+              className="input mt-1 pr-10"
+              value={displayCurrency}
+              onChange={(e) => handleCurrencyChange(e.target.value)}
+              disabled={isSavingCurrency}
+            >
+              {DISPLAY_CURRENCIES.map((currency) => (
+                <option key={currency.code} value={currency.code}>
+                  {currency.code} - {currency.name} ({currency.symbol})
+                </option>
+              ))}
+            </select>
+            {isSavingCurrency && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 mt-0.5">
+                <Loader2 className="h-4 w-4 animate-spin text-pineapple" />
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Session Section */}

@@ -20,7 +20,7 @@ const assetSchema = z.object({
 
 type AssetForm = z.infer<typeof assetSchema>;
 
-const CURRENCIES = ['USD', 'EUR', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD', 'BTC', 'ETH'];
+const CURRENCIES = ['USD', 'EUR', 'GBP', 'ILS', 'JPY', 'CHF', 'CAD', 'AUD', 'BTC', 'ETH'];
 
 export function EditAssetClient() {
   const params = useParams();

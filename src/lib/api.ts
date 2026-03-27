@@ -66,7 +66,7 @@ export const authApi = {
 // Users API
 export const usersApi = {
   getMe: () => api.get("/users/me"),
-  updateMe: (data: { name?: string; avatar?: string }) =>
+  updateMe: (data: { name?: string; avatar?: string; displayCurrency?: string }) =>
     api.patch("/users/me", data),
   deleteMe: () => api.delete("/users/me"),
   searchUsers: (email: string) =>

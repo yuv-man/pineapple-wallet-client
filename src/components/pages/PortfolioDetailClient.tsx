@@ -19,7 +19,32 @@ import {
   TrendingUp,
   PiggyBank,
   MoreVertical,
+  AlertCircle,
+  Clock,
 } from 'lucide-react';
+
+// Check if date is older than 3 months
+function isOlderThan3Months(dateString: string): boolean {
+  const date = new Date(dateString);
+  const threeMonthsAgo = new Date();
+  threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+  return date < threeMonthsAgo;
+}
+
+// Format relative time
+function formatRelativeTime(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return 'Today';
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return `${diffDays} days ago`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+  if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
+  return `${Math.floor(diffDays / 365)} years ago`;
+}
 
 const ASSET_ICONS: Record<AssetType, React.ElementType> = {
   [AssetType.BANK_ACCOUNT]: Landmark,
@@ -116,13 +141,13 @@ export default function PortfolioDetailClient() {
 
       {/* Header */}
       <div className="card mb-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">{portfolio.name}</h1>
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">{portfolio.name}</h1>
             {portfolio.description && (
-              <p className="text-gray-600 mt-1">{portfolio.description}</p>
+              <p className="text-gray-600 mt-1 text-sm sm:text-base">{portfolio.description}</p>
             )}
-            <div className="flex items-center gap-4 mt-3 text-sm text-gray-500">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-3 text-xs sm:text-sm text-gray-500">
               {!portfolio.isOwner && (
                 <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded-md">
                   Shared by {portfolio.user.name}
@@ -131,47 +156,47 @@ export default function PortfolioDetailClient() {
               <span>Created {formatDate(portfolio.createdAt)}</span>
             </div>
           </div>
-          <div className="text-right">
-            <p className="text-3xl font-bold text-gray-900">
+          <div className="text-left sm:text-right flex-shrink-0">
+            <p className="text-2xl sm:text-3xl font-bold text-gray-900">
               {formatCurrency(portfolio.totalValue)}
             </p>
-            <p className="text-sm text-gray-500">Total Value</p>
+            <p className="text-xs sm:text-sm text-gray-500">Total Value</p>
           </div>
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-3 mt-6 pt-6 border-t">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-6 pt-6 border-t">
           {canEdit && (
             <Link
               href={`/portfolios/${portfolioId}/assets/new`}
-              className="btn btn-primary"
+              className="btn btn-primary text-sm sm:text-base py-2 px-3 sm:px-4"
             >
-              <PlusCircle className="h-5 w-5 mr-2" />
-              Add Asset
+              <PlusCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
+              <span className="hidden xs:inline">Add</span> Asset
             </Link>
           )}
           {portfolio.isOwner && (
             <>
               <Link
                 href={`/portfolios/${portfolioId}/share`}
-                className="btn btn-outline"
+                className="btn btn-outline text-sm sm:text-base py-2 px-3 sm:px-4"
               >
-                <Share2 className="h-5 w-5 mr-2" />
-                Share
+                <Share2 className="h-4 w-4 sm:h-5 sm:w-5 sm:mr-2" />
+                <span className="hidden sm:inline">Share</span>
               </Link>
               <Link
                 href={`/portfolios/${portfolioId}/edit`}
-                className="btn btn-outline"
+                className="btn btn-outline text-sm sm:text-base py-2 px-3 sm:px-4"
               >
-                <Edit className="h-5 w-5 mr-2" />
-                Edit
+                <Edit className="h-4 w-4 sm:h-5 sm:w-5 sm:mr-2" />
+                <span className="hidden sm:inline">Edit</span>
               </Link>
               <button
                 onClick={() => setShowDeleteConfirm(true)}
-                className="btn btn-outline text-red-600 hover:bg-red-50"
+                className="btn btn-outline text-red-600 hover:bg-red-50 text-sm sm:text-base py-2 px-3 sm:px-4"
               >
-                <Trash2 className="h-5 w-5 mr-2" />
-                Delete
+                <Trash2 className="h-4 w-4 sm:h-5 sm:w-5 sm:mr-2" />
+                <span className="hidden sm:inline">Delete</span>
               </button>
             </>
           )}
@@ -256,69 +281,95 @@ function AssetRow({
 }) {
   const [showMenu, setShowMenu] = useState(false);
   const Icon = ASSET_ICONS[asset.type];
+  const needsUpdate = isOlderThan3Months(asset.updatedAt);
 
   return (
-    <div className="flex items-center justify-between py-4">
-      <div className="flex items-center gap-4">
-        <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-          <Icon className="h-5 w-5 text-gray-600" />
-        </div>
-        <div>
-          <p className="font-medium text-gray-900">{asset.name}</p>
-          <p className="text-sm text-gray-500">
-            {ASSET_TYPE_LABELS[asset.type]}
-          </p>
-        </div>
-      </div>
-      <div className="flex items-center gap-4">
-        <div className="text-right">
-          <p className="font-semibold text-gray-900">
-            {formatCurrency(Number(asset.value), asset.currency)}
-          </p>
-          {asset.notes && (
-            <p className="text-xs text-gray-500 truncate max-w-[150px]">
-              {asset.notes}
+    <div className={`py-4 ${needsUpdate ? 'bg-red-50 -mx-4 sm:-mx-6 px-4 sm:px-6 rounded-lg' : ''}`}>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+        {/* Asset Info */}
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+          <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Icon className="h-5 w-5 text-gray-600" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="font-medium text-gray-900 truncate">{asset.name}</p>
+            <p className="text-xs sm:text-sm text-gray-500">
+              {ASSET_TYPE_LABELS[asset.type]}
             </p>
+          </div>
+        </div>
+
+        {/* Value and Actions */}
+        <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 pl-[52px] sm:pl-0">
+          <div className="text-left sm:text-right min-w-0">
+            <p className="font-semibold text-gray-900 text-sm sm:text-base">
+              {formatCurrency(Number(asset.value), asset.currency)}
+            </p>
+            {/* Last Updated */}
+            <div className={`flex items-center gap-1 text-xs ${needsUpdate ? 'text-red-600 font-medium' : 'text-gray-400'}`}>
+              {needsUpdate ? (
+                <AlertCircle className="h-3 w-3 flex-shrink-0" />
+              ) : (
+                <Clock className="h-3 w-3 flex-shrink-0" />
+              )}
+              <span className="truncate">
+                {needsUpdate ? 'Update needed: ' : 'Updated '}
+                {formatRelativeTime(asset.updatedAt)}
+              </span>
+            </div>
+          </div>
+          {canEdit && (
+            <div className="relative flex-shrink-0">
+              <button
+                onClick={() => setShowMenu(!showMenu)}
+                className="p-2 hover:bg-gray-100 rounded-lg"
+              >
+                <MoreVertical className="h-4 w-4 text-gray-500" />
+              </button>
+              {showMenu && (
+                <>
+                  <div
+                    className="fixed inset-0 z-10"
+                    onClick={() => setShowMenu(false)}
+                  />
+                  <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border z-20 py-1 min-w-[120px]">
+                    <Link
+                      href={`/assets/${asset.id}/edit`}
+                      className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50"
+                    >
+                      <Edit className="h-4 w-4" />
+                      Edit
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setShowMenu(false);
+                        onDelete();
+                      }}
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 w-full"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Delete
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           )}
         </div>
-        {canEdit && (
-          <div className="relative">
-            <button
-              onClick={() => setShowMenu(!showMenu)}
-              className="p-2 hover:bg-gray-100 rounded-lg"
-            >
-              <MoreVertical className="h-4 w-4 text-gray-500" />
-            </button>
-            {showMenu && (
-              <>
-                <div
-                  className="fixed inset-0 z-10"
-                  onClick={() => setShowMenu(false)}
-                />
-                <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border z-20 py-1 min-w-[120px]">
-                  <Link
-                    href={`/assets/${asset.id}/edit`}
-                    className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50"
-                  >
-                    <Edit className="h-4 w-4" />
-                    Edit
-                  </Link>
-                  <button
-                    onClick={() => {
-                      setShowMenu(false);
-                      onDelete();
-                    }}
-                    className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 w-full"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    Delete
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        )}
       </div>
+
+      {/* Warning banner for outdated assets */}
+      {needsUpdate && canEdit && (
+        <div className="mt-2 pl-[52px] sm:pl-14">
+          <Link
+            href={`/assets/${asset.id}/edit`}
+            className="inline-flex items-center gap-1 text-xs text-red-700 hover:text-red-800 font-medium"
+          >
+            <Edit className="h-3 w-3" />
+            Click to update value
+          </Link>
+        </div>
+      )}
     </div>
   );
 }
