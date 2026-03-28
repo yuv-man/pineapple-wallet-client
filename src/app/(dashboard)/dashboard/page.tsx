@@ -1,12 +1,13 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
-import { currencyApi } from '@/lib/api';
-import { useAuthStore } from '@/store/auth';
-import { AssetType, ASSET_TYPE_LABELS } from '@/types';
-import { formatCurrency } from '@/lib/utils';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
+import { currencyApi } from "@/lib/api";
+import { useAuthStore } from "@/store/auth";
+import { AssetType, ASSET_TYPE_LABELS } from "@/types";
+import { formatCurrency } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 import {
   Wallet,
   TrendingUp,
@@ -19,22 +20,16 @@ import {
   ArrowRight,
   RefreshCw,
   Globe,
-} from 'lucide-react';
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Tooltip,
-} from 'recharts';
+} from "lucide-react";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import {
   PageTransition,
   AnimatedCard,
   AnimatedList,
   AnimatedListItem,
-} from '@/components/animations';
+} from "@/components/animations";
 
-const COLORS = ['#F7B500', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899'];
+const COLORS = ["#F7B500", "#10B981", "#3B82F6", "#8B5CF6", "#EC4899"];
 
 const ASSET_ICONS: Record<AssetType, React.ElementType> = {
   [AssetType.BANK_ACCOUNT]: Landmark,
@@ -44,7 +39,16 @@ const ASSET_ICONS: Record<AssetType, React.ElementType> = {
   [AssetType.INVESTMENT]: PiggyBank,
 };
 
-const POPULAR_CURRENCIES = ['USD', 'EUR', 'GBP', 'ILS', 'JPY', 'CHF', 'CAD', 'AUD'];
+const POPULAR_CURRENCIES = [
+  "USD",
+  "EUR",
+  "GBP",
+  "ILS",
+  "JPY",
+  "CHF",
+  "CAD",
+  "AUD",
+];
 
 interface NetWorthData {
   totalNetWorth: number;
@@ -57,8 +61,11 @@ interface NetWorthData {
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
+  const router = useRouter();
   const [netWorthData, setNetWorthData] = useState<NetWorthData | null>(null);
-  const [selectedCurrency, setSelectedCurrency] = useState(user?.displayCurrency || 'USD');
+  const [selectedCurrency, setSelectedCurrency] = useState(
+    user?.displayCurrency || "USD",
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -71,7 +78,7 @@ export default function DashboardPage() {
       setNetWorthData(response.data);
       setLastUpdated(new Date());
     } catch (error) {
-      console.error('Failed to fetch net worth:', error);
+      console.error("Failed to fetch net worth:", error);
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -79,7 +86,7 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    const currency = user?.displayCurrency || 'USD';
+    const currency = user?.displayCurrency || "USD";
     setSelectedCurrency(currency);
     fetchNetWorth(currency);
   }, [user?.displayCurrency]);
@@ -98,7 +105,7 @@ export default function DashboardPage() {
       <div className="flex items-center justify-center h-[50vh]">
         <motion.div
           animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
         >
           <Loader2 className="h-8 w-8 text-pineapple" />
         </motion.div>
@@ -157,13 +164,15 @@ export default function DashboardPage() {
             className="p-1.5 rounded-lg hover:bg-white/50 transition-colors"
             title="Refresh rates"
           >
-            <RefreshCw className={`h-4 w-4 text-gray-500 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`h-4 w-4 text-gray-500 ${isRefreshing ? "animate-spin" : ""}`}
+            />
           </motion.button>
         </motion.div>
       </motion.div>
 
       {/* Stats Cards */}
-      <AnimatedList className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <AnimatedList className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         {/* Net Worth Card - Highlighted */}
         <AnimatedListItem>
           <motion.div
@@ -188,7 +197,10 @@ export default function DashboardPage() {
                   {isRefreshing ? (
                     <span className="opacity-50">Updating...</span>
                   ) : (
-                    formatCurrency(netWorthData?.totalNetWorth || 0, selectedCurrency)
+                    formatCurrency(
+                      netWorthData?.totalNetWorth || 0,
+                      selectedCurrency,
+                    )
                   )}
                 </motion.p>
                 <p className="text-xs text-gray-500">in {selectedCurrency}</p>
@@ -199,7 +211,11 @@ export default function DashboardPage() {
 
         {/* Portfolios Card */}
         <AnimatedListItem>
-          <motion.div whileHover={{ y: -4 }} className="stat-card">
+          <motion.div
+            whileHover={{ y: -4 }}
+            className="stat-card"
+            onClick={() => router.push("/portfolios")}
+          >
             <div className="flex items-center gap-4">
               <motion.div
                 className="icon-container bg-blue-50/80 border-blue-100/50"
@@ -220,7 +236,7 @@ export default function DashboardPage() {
         {/* Assets Card */}
         <AnimatedListItem>
           <motion.div whileHover={{ y: -4 }} className="stat-card">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 ">
               <motion.div
                 className="icon-container bg-green-50/80 border-green-100/50"
                 whileHover={{ scale: 1.1, rotate: 5 }}
@@ -273,13 +289,15 @@ export default function DashboardPage() {
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value: number) => formatCurrency(value, selectedCurrency)}
+                    formatter={(value: number) =>
+                      formatCurrency(value, selectedCurrency)
+                    }
                     contentStyle={{
-                      backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                      backdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255, 255, 255, 0.5)',
-                      borderRadius: '12px',
-                      boxShadow: '0 8px 32px rgba(31, 38, 135, 0.1)',
+                      backgroundColor: "rgba(255, 255, 255, 0.9)",
+                      backdropFilter: "blur(10px)",
+                      border: "1px solid rgba(255, 255, 255, 0.5)",
+                      borderRadius: "12px",
+                      boxShadow: "0 8px 32px rgba(31, 38, 135, 0.1)",
                     }}
                   />
                 </PieChart>
@@ -317,32 +335,34 @@ export default function DashboardPage() {
 
         {/* Quick Actions */}
         <AnimatedCard delay={0.4} className="card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            Quick Actions
+          </h2>
           <div className="space-y-3">
             {[
               {
-                href: '/portfolios/new',
+                href: "/portfolios/new",
                 icon: PlusCircle,
-                iconBg: 'bg-pineapple/10',
-                iconColor: 'text-pineapple',
-                title: 'Create Portfolio',
-                desc: 'Start tracking a new set of assets',
+                iconBg: "bg-pineapple/10",
+                iconColor: "text-pineapple",
+                title: "Create Portfolio",
+                desc: "Start tracking a new set of assets",
               },
               {
-                href: '/portfolios',
+                href: "/portfolios",
                 icon: Wallet,
-                iconBg: 'bg-blue-50/80',
-                iconColor: 'text-blue-600',
-                title: 'View Portfolios',
-                desc: 'Manage your existing portfolios',
+                iconBg: "bg-blue-50/80",
+                iconColor: "text-blue-600",
+                title: "View Portfolios",
+                desc: "Manage your existing portfolios",
               },
               {
-                href: '/invitations',
+                href: "/invitations",
                 icon: TrendingUp,
-                iconBg: 'bg-purple-50/80',
-                iconColor: 'text-purple-600',
-                title: 'Check Invitations',
-                desc: 'See portfolios shared with you',
+                iconBg: "bg-purple-50/80",
+                iconColor: "text-purple-600",
+                title: "Check Invitations",
+                desc: "See portfolios shared with you",
               },
             ].map((action, index) => (
               <motion.div
@@ -360,7 +380,9 @@ export default function DashboardPage() {
                       <action.icon className={`h-5 w-5 ${action.iconColor}`} />
                     </motion.div>
                     <div>
-                      <p className="font-medium text-gray-900">{action.title}</p>
+                      <p className="font-medium text-gray-900">
+                        {action.title}
+                      </p>
                       <p className="text-sm text-gray-500">{action.desc}</p>
                     </div>
                   </div>
@@ -405,7 +427,9 @@ export default function DashboardPage() {
                     <p className="text-xl font-bold text-gray-900 truncate">
                       {formatCurrency(data.totalValue, selectedCurrency)}
                     </p>
-                    <p className="text-xs text-gray-500">{data.count} asset(s)</p>
+                    <p className="text-xs text-gray-500">
+                      {data.count} asset(s)
+                    </p>
                   </motion.div>
                 </AnimatedListItem>
               );
