@@ -3,9 +3,13 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { portfoliosApi } from '@/lib/api';
-import { Portfolio } from '@/types';
+import { useAuthStore } from '@/store/auth';
+import { useCurrencyStore } from '@/store/currency';
+import { Portfolio, AssetType } from '@/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { Wallet, PlusCircle, Loader2, Users, ArrowRight } from 'lucide-react';
+
+const CRYPTO_SYMBOLS = ['BTC', 'ETH', 'USDT', 'BNB', 'XRP', 'ADA', 'SOL', 'DOGE'];
 
 export default function PortfoliosPage() {
   const [portfolios, setPortfolios] = useState<{
@@ -13,6 +17,10 @@ export default function PortfoliosPage() {
     shared: Portfolio[];
   }>({ owned: [], shared: [] });
   const [isLoading, setIsLoading] = useState(true);
+
+  const { user } = useAuthStore();
+  const { convert, getCryptoPrice } = useCurrencyStore();
+  const displayCurrency = user?.displayCurrency || 'USD';
 
   useEffect(() => {
     const fetchPortfolios = async () => {
@@ -67,7 +75,14 @@ export default function PortfoliosPage() {
       ) : (
         <div className="grid gap-4">
           {portfolios.owned.map((portfolio) => (
-            <PortfolioCard key={portfolio.id} portfolio={portfolio} isOwner />
+            <PortfolioCard
+              key={portfolio.id}
+              portfolio={portfolio}
+              isOwner
+              displayCurrency={displayCurrency}
+              convert={convert}
+              getCryptoPrice={getCryptoPrice}
+            />
           ))}
         </div>
       )}
@@ -78,13 +93,49 @@ export default function PortfoliosPage() {
 function PortfolioCard({
   portfolio,
   isOwner,
+  displayCurrency,
+  convert,
+  getCryptoPrice,
 }: {
   portfolio: Portfolio;
   isOwner: boolean;
+  displayCurrency: string;
+  convert: (amount: number, from: string, to: string) => number;
+  getCryptoPrice: (symbol: string) => number | null;
 }) {
   const sharedCount = portfolio.shares?.filter(
     (s) => s.status === 'ACCEPTED'
   ).length;
+
+  // Calculate total in user's display currency
+  const calculateTotalInDisplayCurrency = () => {
+    if (!portfolio.assets.length) return 0;
+
+    return portfolio.assets.reduce((total, asset) => {
+      const value = Number(asset.value);
+      const isCrypto = asset.type === AssetType.CRYPTO;
+      const isCryptoCurrency = CRYPTO_SYMBOLS.includes(asset.currency);
+
+      if (isCrypto && isCryptoCurrency) {
+        const cryptoPrice = getCryptoPrice(asset.currency);
+        if (cryptoPrice) {
+          const valueInUSD = value * cryptoPrice;
+          if (displayCurrency === 'USD') {
+            return total + valueInUSD;
+          }
+          return total + convert(valueInUSD, 'USD', displayCurrency);
+        }
+        return total;
+      }
+
+      if (asset.currency === displayCurrency) {
+        return total + value;
+      }
+      return total + convert(value, asset.currency, displayCurrency);
+    }, 0);
+  };
+
+  const totalInDisplayCurrency = calculateTotalInDisplayCurrency();
 
   return (
     <Link
@@ -115,9 +166,9 @@ function PortfolioCard({
         <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 pl-[52px] sm:pl-0">
           <div className="text-left sm:text-right">
             <p className="text-lg sm:text-2xl font-bold text-gray-900">
-              {formatCurrency(portfolio.totalValue)}
+              {formatCurrency(totalInDisplayCurrency, displayCurrency)}
             </p>
-            <p className="text-xs sm:text-sm text-gray-500">Total Value</p>
+            <p className="text-xs sm:text-sm text-gray-500">Total in {displayCurrency}</p>
           </div>
           <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 flex-shrink-0" />
         </div>

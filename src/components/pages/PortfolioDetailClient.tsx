@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { portfoliosApi, assetsApi } from '@/lib/api';
+import { useAuthStore } from '@/store/auth';
+import { useCurrencyStore } from '@/store/currency';
 import { Portfolio, Asset, AssetType, ASSET_TYPE_LABELS, Permission } from '@/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import {
@@ -21,6 +23,7 @@ import {
   MoreVertical,
   AlertCircle,
   Clock,
+  RefreshCw,
 } from 'lucide-react';
 
 // Check if date is older than 3 months
@@ -62,7 +65,18 @@ export default function PortfolioDetailClient() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  const { user } = useAuthStore();
+  const { convert, getCryptoPrice, fetchRates, rates, isLoading: ratesLoading } = useCurrencyStore();
+  const displayCurrency = user?.displayCurrency || 'USD';
+
   const portfolioId = typeof params.id === 'string' ? params.id : '';
+
+  // Fetch rates on mount if needed
+  useEffect(() => {
+    if (!rates) {
+      fetchRates('USD');
+    }
+  }, [rates, fetchRates]);
 
   useEffect(() => {
     if (!portfolioId) {
@@ -129,6 +143,43 @@ export default function PortfolioDetailClient() {
 
   const canEdit = portfolio.isOwner || portfolio.permission === Permission.EDIT;
 
+  // Crypto symbols for detection
+  const cryptoSymbols = ['BTC', 'ETH', 'USDT', 'BNB', 'XRP', 'ADA', 'SOL', 'DOGE'];
+
+  // Calculate total in user's display currency
+  const calculateTotalInDisplayCurrency = () => {
+    if (!portfolio.assets.length) return 0;
+
+    return portfolio.assets.reduce((total, asset) => {
+      const value = Number(asset.value);
+      const isCrypto = asset.type === AssetType.CRYPTO;
+      const isCryptoCurrency = cryptoSymbols.includes(asset.currency);
+
+      if (isCrypto && isCryptoCurrency) {
+        // For crypto: value is amount of crypto, multiply by price
+        const cryptoPrice = getCryptoPrice(asset.currency);
+        if (cryptoPrice) {
+          const valueInUSD = value * cryptoPrice;
+          if (displayCurrency === 'USD') {
+            return total + valueInUSD;
+          }
+          return total + convert(valueInUSD, 'USD', displayCurrency);
+        }
+        return total; // Can't convert without price
+      }
+
+      // For fiat currencies
+      if (asset.currency === displayCurrency) {
+        return total + value;
+      }
+      // Convert to display currency
+      const converted = convert(value, asset.currency, displayCurrency);
+      return total + converted;
+    }, 0);
+  };
+
+  const totalInDisplayCurrency = calculateTotalInDisplayCurrency();
+
   return (
     <div>
       <Link
@@ -157,10 +208,20 @@ export default function PortfolioDetailClient() {
             </div>
           </div>
           <div className="text-left sm:text-right flex-shrink-0">
-            <p className="text-2xl sm:text-3xl font-bold text-gray-900">
-              {formatCurrency(portfolio.totalValue)}
-            </p>
-            <p className="text-xs sm:text-sm text-gray-500">Total Value</p>
+            <div className="flex items-center gap-2 sm:justify-end">
+              <p className="text-2xl sm:text-3xl font-bold text-gray-900">
+                {formatCurrency(totalInDisplayCurrency, displayCurrency)}
+              </p>
+              <button
+                onClick={() => fetchRates('USD')}
+                disabled={ratesLoading}
+                className="p-1 hover:bg-gray-100 rounded"
+                title="Refresh rates"
+              >
+                <RefreshCw className={`h-4 w-4 text-gray-400 ${ratesLoading ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
+            <p className="text-xs sm:text-sm text-gray-500">Total Value in {displayCurrency}</p>
           </div>
         </div>
 
@@ -227,6 +288,9 @@ export default function PortfolioDetailClient() {
                 asset={asset}
                 canEdit={canEdit}
                 onDelete={() => handleDeleteAsset(asset.id)}
+                displayCurrency={displayCurrency}
+                convert={convert}
+                getCryptoPrice={getCryptoPrice}
               />
             ))}
           </div>
@@ -274,14 +338,51 @@ function AssetRow({
   asset,
   canEdit,
   onDelete,
+  displayCurrency,
+  convert,
+  getCryptoPrice,
 }: {
   asset: Asset;
   canEdit: boolean;
   onDelete: () => void;
+  displayCurrency: string;
+  convert: (amount: number, from: string, to: string) => number;
+  getCryptoPrice: (symbol: string) => number | null;
 }) {
   const [showMenu, setShowMenu] = useState(false);
   const Icon = ASSET_ICONS[asset.type];
   const needsUpdate = isOlderThan3Months(asset.updatedAt);
+
+  // Check if this is a crypto asset
+  const isCrypto = asset.type === AssetType.CRYPTO;
+  const cryptoSymbols = ['BTC', 'ETH', 'USDT', 'BNB', 'XRP', 'ADA', 'SOL', 'DOGE'];
+  const isCryptoCurrency = cryptoSymbols.includes(asset.currency);
+
+  // Calculate converted value
+  const getConvertedValue = () => {
+    const value = Number(asset.value);
+
+    if (isCrypto && isCryptoCurrency) {
+      // For crypto: value is the amount of crypto, convert to display currency
+      const cryptoPrice = getCryptoPrice(asset.currency);
+      if (cryptoPrice) {
+        const valueInUSD = value * cryptoPrice;
+        if (displayCurrency === 'USD') {
+          return valueInUSD;
+        }
+        return convert(valueInUSD, 'USD', displayCurrency);
+      }
+      return null;
+    }
+
+    // For fiat currencies
+    if (asset.currency === displayCurrency) {
+      return null; // No conversion needed
+    }
+    return convert(value, asset.currency, displayCurrency);
+  };
+
+  const convertedValue = getConvertedValue();
 
   return (
     <div className={`py-4 ${needsUpdate ? 'bg-red-50 -mx-4 sm:-mx-6 px-4 sm:px-6 rounded-lg' : ''}`}>
@@ -302,11 +403,33 @@ function AssetRow({
         {/* Value and Actions */}
         <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 pl-[52px] sm:pl-0">
           <div className="text-left sm:text-right min-w-0">
-            <p className="font-semibold text-gray-900 text-sm sm:text-base">
-              {formatCurrency(Number(asset.value), asset.currency)}
-            </p>
+            {isCrypto && isCryptoCurrency ? (
+              // Crypto display: "1 BTC ($70,000 USD)"
+              <div>
+                <p className="font-semibold text-gray-900 text-sm sm:text-base">
+                  {Number(asset.value).toLocaleString(undefined, { maximumFractionDigits: 8 })} {asset.currency}
+                </p>
+                {convertedValue !== null && (
+                  <p className="text-xs sm:text-sm text-gray-500">
+                    ≈ {formatCurrency(convertedValue, displayCurrency)}
+                  </p>
+                )}
+              </div>
+            ) : (
+              // Fiat display: "100 ILS ($32 USD)"
+              <div>
+                <p className="font-semibold text-gray-900 text-sm sm:text-base">
+                  {formatCurrency(Number(asset.value), asset.currency)}
+                </p>
+                {convertedValue !== null && (
+                  <p className="text-xs sm:text-sm text-gray-500">
+                    ≈ {formatCurrency(convertedValue, displayCurrency)}
+                  </p>
+                )}
+              </div>
+            )}
             {/* Last Updated */}
-            <div className={`flex items-center gap-1 text-xs ${needsUpdate ? 'text-red-600 font-medium' : 'text-gray-400'}`}>
+            <div className={`flex items-center gap-1 text-xs mt-1 ${needsUpdate ? 'text-red-600 font-medium' : 'text-gray-400'}`}>
               {needsUpdate ? (
                 <AlertCircle className="h-3 w-3 flex-shrink-0" />
               ) : (
