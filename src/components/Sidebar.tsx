@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   Wallet,
@@ -14,16 +14,16 @@ import {
   LogOut,
   Menu,
   X,
-} from 'lucide-react';
-import { useAuthStore } from '@/store/auth';
-import { useRouter } from 'next/navigation';
-import { authApi } from '@/lib/api';
+} from "lucide-react";
+import { useAuthStore } from "@/store/auth";
+import { useRouter } from "next/navigation";
+import { authApi } from "@/lib/api";
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Portfolios', href: '/portfolios', icon: Wallet },
-  { name: 'Shared With Me', href: '/shared', icon: Share2 },
-  { name: 'Invitations', href: '/invitations', icon: Bell },
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Portfolios", href: "/portfolios", icon: Wallet },
+  { name: "Shared With Me", href: "/shared", icon: Share2 },
+  { name: "Invitations", href: "/invitations", icon: Bell },
 ];
 
 export function Sidebar() {
@@ -39,7 +39,7 @@ export function Sidebar() {
       // Ignore errors, still log out locally
     }
     logout();
-    router.push('/login');
+    router.push("/login");
   };
 
   // Close mobile menu when route changes
@@ -50,12 +50,12 @@ export function Sidebar() {
   // Prevent body scroll when mobile menu is open
   useEffect(() => {
     if (isMobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     }
     return () => {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     };
   }, [isMobileMenuOpen]);
 
@@ -68,7 +68,7 @@ export function Sidebar() {
           alt="Pineapple Wallet"
           className="w-8 h-8 object-contain"
           whileHover={{ rotate: 10, scale: 1.1 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+          transition={{ type: "spring", stiffness: 400, damping: 17 }}
         />
         <span className="text-lg font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
           Pineapple
@@ -78,7 +78,8 @@ export function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 space-y-1 px-3 py-4">
         {navigation.map((item, index) => {
-          const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+          const isActive =
+            pathname === item.href || pathname.startsWith(item.href + "/");
           return (
             <motion.div
               key={item.name}
@@ -89,15 +90,15 @@ export function Sidebar() {
               <Link
                 href={item.href}
                 className={cn(
-                  'relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-300',
+                  "relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-300",
                   isActive
-                    ? 'bg-gradient-to-r from-pineapple/20 to-pineapple/10 text-pineapple-dark shadow-sm'
-                    : 'text-gray-600 hover:bg-white/50 hover:text-gray-900'
+                    ? "bg-gradient-to-r from-pineapple/20 to-pineapple/10 text-pineapple-dark shadow-sm"
+                    : "text-gray-600 hover:bg-white/50 hover:text-gray-900",
                 )}
               >
                 <motion.div
                   whileHover={{ scale: 1.1, rotate: 5 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
                 >
                   <item.icon className="h-5 w-5" />
                 </motion.div>
@@ -106,7 +107,7 @@ export function Sidebar() {
                   <motion.div
                     layoutId="activeNavIndicator"
                     className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-pineapple to-pineapple-dark rounded-r-full"
-                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   />
                 )}
               </Link>
@@ -124,9 +125,9 @@ export function Sidebar() {
                        flex items-center justify-center text-pineapple-dark font-semibold
                        shadow-sm"
             whileHover={{ scale: 1.05, rotate: 5 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+            transition={{ type: "spring", stiffness: 400, damping: 17 }}
           >
-            {user?.name?.charAt(0).toUpperCase() || 'U'}
+            {user?.name?.charAt(0).toUpperCase() || "U"}
           </motion.div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-gray-900 truncate">
@@ -136,7 +137,11 @@ export function Sidebar() {
           </div>
         </div>
         <div className="flex gap-2">
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-1">
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="flex-1"
+          >
             <Link
               href="/settings"
               className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl
@@ -147,7 +152,11 @@ export function Sidebar() {
               <Settings className="h-4 w-4" />
             </Link>
           </motion.div>
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-1">
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="flex-1"
+          >
             <button
               onClick={handleLogout}
               className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl
@@ -168,7 +177,7 @@ export function Sidebar() {
       {/* Mobile menu button */}
       <motion.button
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2.5 rounded-xl
+        className="lg:hidden fixed top-4 right-4 z-50 p-2.5 rounded-xl
                    bg-white/70 backdrop-blur-xl border border-white/50
                    shadow-glass hover:shadow-glass-prominent
                    transition-all duration-300"
@@ -216,8 +225,10 @@ export function Sidebar() {
       </AnimatePresence>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex fixed left-0 top-0 z-40 h-screen w-64
-                        bg-white/70 backdrop-blur-xl border-r border-white/30 shadow-glass">
+      <aside
+        className="hidden lg:flex fixed left-0 top-0 z-40 h-screen w-64
+                        bg-white/70 backdrop-blur-xl border-r border-white/30 shadow-glass"
+      >
         {sidebarContent}
       </aside>
 
@@ -225,10 +236,10 @@ export function Sidebar() {
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.aside
-            initial={{ x: '-100%' }}
+            initial={{ x: "-100%" }}
             animate={{ x: 0 }}
-            exit={{ x: '-100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            exit={{ x: "-100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className="lg:hidden fixed left-0 top-0 z-40 h-screen w-64
                        bg-white/80 backdrop-blur-xl border-r border-white/30 shadow-glass-prominent"
           >

@@ -557,7 +557,7 @@ function AssetRow({
         backgroundColor: needsUpdate ? undefined : "rgba(255, 255, 255, 0.5)",
       }}
     >
-      <div className="flex flex-row sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         {/* Asset Info */}
         <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
           <motion.div
