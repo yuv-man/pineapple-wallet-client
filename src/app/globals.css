@@ -25,7 +25,12 @@
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 45 93% 47%;
-    --radius: 0.5rem;
+    --radius: 0.75rem;
+
+    /* Glassmorphism custom properties */
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.5);
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
   }
 }
 
@@ -34,36 +39,276 @@
     border-color: hsl(var(--border));
   }
   body {
-    @apply bg-gray-50 text-foreground;
+    @apply bg-gradient-to-br from-gray-50 via-amber-50/30 to-gray-100 text-foreground min-h-screen;
   }
 }
 
 @layer components {
+  /* Glassmorphism Button Styles */
   .btn {
-    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50;
+    @apply inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-medium
+           transition-all duration-300 ease-out
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
+           disabled:pointer-events-none disabled:opacity-50
+           active:scale-[0.98];
   }
+
   .btn-primary {
-    @apply bg-pineapple text-white hover:bg-pineapple-dark;
+    @apply bg-gradient-to-r from-pineapple-light via-pineapple to-pineapple-dark
+           text-white font-semibold
+           shadow-lg shadow-pineapple/25
+           hover:shadow-xl hover:shadow-pineapple/30 hover:scale-[1.02]
+           backdrop-blur-sm;
   }
+
   .btn-secondary {
-    @apply bg-gray-100 text-gray-900 hover:bg-gray-200;
+    @apply bg-white/60 backdrop-blur-md text-gray-800
+           border border-white/50
+           shadow-glass-subtle
+           hover:bg-white/80 hover:shadow-glass;
   }
+
   .btn-outline {
-    @apply border border-gray-300 bg-white hover:bg-gray-50;
+    @apply border border-gray-200/60 bg-white/40 backdrop-blur-sm
+           hover:bg-white/60 hover:border-gray-300/60
+           shadow-sm hover:shadow-md;
   }
+
   .btn-danger {
-    @apply bg-red-600 text-white hover:bg-red-700;
+    @apply bg-gradient-to-r from-red-500 to-red-600 text-white
+           shadow-lg shadow-red-500/25
+           hover:shadow-xl hover:shadow-red-500/30 hover:scale-[1.02];
   }
+
   .btn-ghost {
-    @apply hover:bg-gray-100;
+    @apply hover:bg-white/50 hover:backdrop-blur-sm rounded-xl;
   }
+
+  /* Glassmorphism Input Styles */
   .input {
-    @apply flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-pineapple focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50;
+    @apply flex h-11 w-full rounded-xl
+           border border-white/40
+           bg-white/50 backdrop-blur-md
+           px-4 py-2.5 text-sm
+           placeholder:text-gray-400
+           shadow-glass-subtle
+           transition-all duration-300
+           focus:outline-none focus:ring-2 focus:ring-pineapple/50 focus:border-pineapple/30
+           focus:bg-white/70 focus:shadow-glass
+           disabled:cursor-not-allowed disabled:opacity-50;
   }
+
+  /* Glassmorphism Card Styles */
   .card {
-    @apply rounded-xl bg-white p-6 shadow-sm border border-gray-100;
+    @apply rounded-2xl
+           bg-white/60 backdrop-blur-xl
+           p-6
+           shadow-glass
+           border border-white/50
+           transition-all duration-300;
   }
+
+  .card-hover {
+    @apply hover:bg-white/70 hover:shadow-glass-prominent hover:scale-[1.01]
+           hover:border-white/60 cursor-pointer;
+  }
+
+  .card-interactive {
+    @apply card card-hover;
+  }
+
+  /* Label styles */
   .label {
     @apply text-sm font-medium text-gray-700;
+  }
+
+  /* Stats Card Glassmorphism */
+  .stat-card {
+    @apply rounded-2xl p-6
+           bg-gradient-to-br from-white/80 to-white/40
+           backdrop-blur-xl
+           border border-white/50
+           shadow-glass
+           transition-all duration-300
+           hover:shadow-glass-prominent;
+  }
+
+  .stat-card-highlight {
+    @apply stat-card relative overflow-hidden;
+    background: linear-gradient(135deg, rgba(247,181,0,0.15) 0%, rgba(255,224,102,0.08) 100%);
+    border-color: rgba(247, 181, 0, 0.25);
+  }
+
+  .stat-card-highlight::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent
+           opacity-0 transition-opacity duration-500;
+  }
+
+  .stat-card-highlight:hover::before {
+    @apply opacity-100;
+  }
+
+  /* Icon Container */
+  .icon-container {
+    @apply w-12 h-12 rounded-xl flex items-center justify-center
+           bg-white/50 backdrop-blur-sm
+           shadow-glass-subtle border border-white/40
+           transition-all duration-300;
+  }
+
+  .icon-container-primary {
+    @apply icon-container
+           bg-gradient-to-br from-pineapple/20 to-pineapple/10
+           border-pineapple/20;
+  }
+
+  .icon-container-sm {
+    @apply w-10 h-10 rounded-lg flex items-center justify-center
+           bg-white/50 backdrop-blur-sm
+           shadow-glass-subtle border border-white/40;
+  }
+
+  /* Modal Glassmorphism */
+  .modal-overlay {
+    @apply fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50;
+  }
+
+  .modal-content {
+    @apply bg-white/90 backdrop-blur-xl rounded-2xl p-6 max-w-md w-full mx-4
+           shadow-glass-prominent border border-white/50;
+  }
+
+  /* Empty State */
+  .empty-state {
+    @apply text-center py-16 px-8;
+  }
+
+  .empty-state-icon {
+    @apply w-20 h-20 mx-auto mb-6 rounded-2xl
+           bg-gradient-to-br from-gray-100/80 to-gray-50/60
+           backdrop-blur-sm border border-white/60
+           flex items-center justify-center
+           shadow-glass;
+  }
+
+  /* Quick Action Link */
+  .action-link {
+    @apply flex items-center justify-between p-4 rounded-xl
+           bg-white/40 backdrop-blur-sm
+           border border-white/50
+           shadow-glass-subtle
+           transition-all duration-300
+           hover:bg-white/60 hover:shadow-glass hover:scale-[1.01]
+           hover:border-pineapple/30;
+  }
+
+  /* Asset Row */
+  .asset-row {
+    @apply py-4 px-4 -mx-4 rounded-xl
+           transition-all duration-300
+           hover:bg-white/40 hover:backdrop-blur-sm;
+  }
+
+  .asset-row-warning {
+    @apply py-4 px-4 -mx-4 rounded-xl
+           bg-gradient-to-r from-red-50/80 to-red-50/40
+           backdrop-blur-sm border border-red-200/50;
+  }
+
+  /* Divider */
+  .divider {
+    @apply border-t border-white/40;
+  }
+
+  /* Glass Select */
+  .select-glass {
+    @apply bg-white/50 backdrop-blur-md border border-white/40
+           rounded-xl px-4 py-2.5 text-sm
+           shadow-glass-subtle
+           focus:outline-none focus:ring-2 focus:ring-pineapple/50
+           transition-all duration-300;
+  }
+
+  /* Type Selector Card */
+  .type-card {
+    @apply p-5 rounded-xl text-left transition-all duration-300
+           bg-white/40 backdrop-blur-sm
+           border-2 border-white/50
+           hover:bg-white/60 hover:border-white/70 hover:shadow-glass;
+  }
+
+  .type-card-selected {
+    @apply p-5 rounded-xl text-left transition-all duration-300
+           bg-gradient-to-br from-pineapple/20 to-pineapple/10
+           border-2 border-pineapple
+           shadow-glow-pineapple backdrop-blur-sm;
+  }
+
+  /* Navbar Glassmorphism */
+  .navbar-glass {
+    @apply bg-white/70 backdrop-blur-xl border-b border-white/30 shadow-glass-subtle;
+  }
+
+  /* Sidebar Glassmorphism */
+  .sidebar-glass {
+    @apply bg-white/70 backdrop-blur-xl border-r border-white/30 shadow-glass;
+  }
+
+  /* Nav Link */
+  .nav-link {
+    @apply flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium
+           transition-all duration-300
+           text-gray-600 hover:bg-white/50 hover:text-gray-900;
+  }
+
+  .nav-link-active {
+    @apply flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium
+           bg-gradient-to-r from-pineapple/20 to-pineapple/10
+           text-pineapple-dark shadow-sm border border-pineapple/10;
+  }
+
+  /* Loading Shimmer */
+  .shimmer {
+    @apply bg-gradient-to-r from-white/40 via-white/70 to-white/40
+           bg-[length:200%_100%] animate-shimmer rounded-xl;
+  }
+
+  /* Floating Background Shapes */
+  .bg-blob {
+    @apply absolute rounded-full blur-3xl opacity-30 pointer-events-none;
+  }
+
+  .bg-blob-primary {
+    @apply bg-blob bg-pineapple/20;
+  }
+
+  .bg-blob-secondary {
+    @apply bg-blob bg-blue-500/10;
+  }
+}
+
+/* Custom scrollbar for glassmorphism */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-white/30 rounded-full;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300/50 rounded-full hover:bg-gray-400/50;
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

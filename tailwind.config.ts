@@ -73,6 +73,48 @@ const config: Config = {
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
       },
+      backdropBlur: {
+        xs: '2px',
+        '2xl': '40px',
+        '3xl': '64px',
+      },
+      boxShadow: {
+        glass: '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+        'glass-subtle': '0 4px 16px 0 rgba(31, 38, 135, 0.05)',
+        'glass-prominent': '0 12px 48px 0 rgba(31, 38, 135, 0.1)',
+        'glass-inset': 'inset 0 1px 1px 0 rgba(255, 255, 255, 0.4)',
+        'glow-pineapple': '0 0 20px rgba(247, 181, 0, 0.3)',
+        'glow-pineapple-lg': '0 0 40px rgba(247, 181, 0, 0.4)',
+      },
+      keyframes: {
+        shimmer: {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
+        },
+        'pulse-glow': {
+          '0%, 100%': { boxShadow: '0 0 20px rgba(247, 181, 0, 0.2)' },
+          '50%': { boxShadow: '0 0 30px rgba(247, 181, 0, 0.4)' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-8px)' },
+        },
+        'gradient-shift': {
+          '0%, 100%': { backgroundPosition: '0% 50%' },
+          '50%': { backgroundPosition: '100% 50%' },
+        },
+      },
+      animation: {
+        shimmer: 'shimmer 2s linear infinite',
+        'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
+        float: 'float 3s ease-in-out infinite',
+        'gradient-shift': 'gradient-shift 3s ease infinite',
+      },
+      backgroundImage: {
+        'glass-gradient': 'linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%)',
+        'pineapple-gradient': 'linear-gradient(135deg, #FFE066 0%, #F7B500 50%, #C99000 100%)',
+        'dark-glass': 'linear-gradient(135deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.05) 100%)',
+      },
     },
   },
   plugins: [],
