@@ -14,7 +14,7 @@ import {
   ASSET_TYPE_LABELS,
   Permission,
 } from "@/types";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { cn, formatCurrency, formatDate } from "@/lib/utils";
 import {
   ArrowLeft,
   PlusCircle,
@@ -27,11 +27,11 @@ import {
   Bitcoin,
   TrendingUp,
   PiggyBank,
-  MoreVertical,
   AlertCircle,
-  Clock,
   RefreshCw,
   Wallet,
+  Eye,
+  X,
 } from "lucide-react";
 import {
   PageTransition,
@@ -48,19 +48,12 @@ function isOlderThan3Months(dateString: string): boolean {
   return date < threeMonthsAgo;
 }
 
-// Format relative time
-function formatRelativeTime(dateString: string): string {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 0) return "Today";
-  if (diffDays === 1) return "Yesterday";
-  if (diffDays < 7) return `${diffDays} days ago`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-  if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
-  return `${Math.floor(diffDays / 365)} years ago`;
+function formatLongDate(dateString: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(new Date(dateString));
 }
 
 const ASSET_ICONS: Record<AssetType, React.ElementType> = {
@@ -69,6 +62,43 @@ const ASSET_ICONS: Record<AssetType, React.ElementType> = {
   [AssetType.CRYPTO]: Bitcoin,
   [AssetType.STOCK]: TrendingUp,
   [AssetType.INVESTMENT]: PiggyBank,
+};
+
+// Pastel colors for each asset type
+const ASSET_TYPE_COLORS: Record<
+  AssetType,
+  { bg: string; border: string; text: string; icon: string }
+> = {
+  [AssetType.BANK_ACCOUNT]: {
+    bg: "bg-purple-50",
+    border: "border-purple-200",
+    text: "text-purple-700",
+    icon: "text-purple-500",
+  },
+  [AssetType.REAL_ESTATE]: {
+    bg: "bg-rose-50",
+    border: "border-rose-200",
+    text: "text-rose-700",
+    icon: "text-rose-500",
+  },
+  [AssetType.CRYPTO]: {
+    bg: "bg-amber-50",
+    border: "border-amber-200",
+    text: "text-amber-700",
+    icon: "text-amber-500",
+  },
+  [AssetType.STOCK]: {
+    bg: "bg-orange-50",
+    border: "border-orange-200",
+    text: "text-orange-700",
+    icon: "text-orange-500",
+  },
+  [AssetType.INVESTMENT]: {
+    bg: "bg-violet-50",
+    border: "border-violet-200",
+    text: "text-violet-700",
+    icon: "text-violet-500",
+  },
 };
 
 export default function PortfolioDetailClient() {
@@ -367,7 +397,7 @@ export default function PortfolioDetailClient() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2, duration: 0.4 }}
-        className="card"
+        className="mb-2"
       >
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Assets</h2>
         {portfolio.assets.length === 0 ? (
@@ -403,7 +433,7 @@ export default function PortfolioDetailClient() {
             )}
           </motion.div>
         ) : (
-          <AnimatedList className="divide-y divide-white/40">
+          <AnimatedList className="flex flex-col gap-3">
             {portfolio.assets.map((asset, index) => (
               <AnimatedListItem key={asset.id}>
                 <AssetRow
@@ -506,8 +536,10 @@ function AssetRow({
   getCryptoPrice: (symbol: string) => number | null;
   index?: number;
 }) {
-  const [showMenu, setShowMenu] = useState(false);
+  const [showActionModal, setShowActionModal] = useState(false);
+  const [showInfoModal, setShowInfoModal] = useState(false);
   const Icon = ASSET_ICONS[asset.type];
+  const colors = ASSET_TYPE_COLORS[asset.type];
   const needsUpdate = isOlderThan3Months(asset.updatedAt);
 
   // Check if this is a crypto asset
@@ -529,7 +561,6 @@ function AssetRow({
     const value = Number(asset.value);
 
     if (isCrypto && isCryptoCurrency) {
-      // For crypto: value is the amount of crypto, convert to display currency
       const cryptoPrice = getCryptoPrice(asset.currency);
       if (cryptoPrice) {
         const valueInUSD = value * cryptoPrice;
@@ -541,9 +572,8 @@ function AssetRow({
       return null;
     }
 
-    // For fiat currencies
     if (asset.currency === displayCurrency) {
-      return null; // No conversion needed
+      return null;
     }
     return convert(value, asset.currency, displayCurrency);
   };
@@ -551,151 +581,304 @@ function AssetRow({
   const convertedValue = getConvertedValue();
 
   return (
-    <motion.div
-      className={needsUpdate ? "asset-row-warning" : "asset-row"}
-      whileHover={{
-        backgroundColor: needsUpdate ? undefined : "rgba(255, 255, 255, 0.5)",
-      }}
-    >
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-        {/* Asset Info */}
-        <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-          <motion.div
-            className={`icon-container-sm ${needsUpdate ? "bg-red-50/80 border-red-100/50" : ""}`}
-            whileHover={{ scale: 1.05, rotate: 5 }}
-          >
-            <Icon
-              className={`h-5 w-5 ${needsUpdate ? "text-red-600" : "text-gray-600"}`}
-            />
-          </motion.div>
-          <div className="min-w-0 flex-1">
-            <p className="font-medium text-gray-900 truncate">{asset.name}</p>
-            <p className="text-xs sm:text-sm text-gray-500">
-              {ASSET_TYPE_LABELS[asset.type]}
-            </p>
-          </div>
+    <>
+      {/* Clickable Asset Row */}
+      <motion.div
+        onClick={() => setShowActionModal(true)}
+        className={cn(
+          "flex items-center gap-4 rounded-2xl border-2 p-4 cursor-pointer transition-all duration-200",
+          needsUpdate
+            ? "border-red-300 bg-red-50"
+            : `${colors.bg} ${colors.border}`,
+          "hover:shadow-md",
+        )}
+        whileHover={{ scale: 1.01 }}
+        whileTap={{ scale: 0.99 }}
+      >
+        {/* Icon */}
+        <div
+          className={cn(
+            "flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-1",
+            needsUpdate
+              ? "bg-red-100 border-red-200"
+              : "bg-white border-gray-200",
+          )}
+        >
+          <Icon
+            className={cn(
+              "h-6 w-6",
+              needsUpdate ? "text-red-500" : colors.icon,
+            )}
+          />
         </div>
 
-        {/* Value and Actions */}
-        <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 pl-[52px] sm:pl-0">
-          <div className="text-left sm:text-right min-w-0">
-            {isCrypto && isCryptoCurrency ? (
-              // Crypto display: "1 BTC ($70,000 USD)"
-              <div>
-                <p className="font-semibold text-gray-900 text-sm sm:text-base">
-                  {Number(asset.value).toLocaleString(undefined, {
-                    maximumFractionDigits: 8,
-                  })}{" "}
-                  {asset.currency}
-                </p>
-                {convertedValue !== null && (
-                  <p className="text-xs sm:text-sm text-gray-500">
-                    ≈ {formatCurrency(convertedValue, displayCurrency)}
-                  </p>
-                )}
-              </div>
-            ) : (
-              // Fiat display: "100 ILS ($32 USD)"
-              <div>
-                <p className="font-semibold text-gray-900 text-sm sm:text-base">
-                  {formatCurrency(Number(asset.value), asset.currency)}
-                </p>
-                {convertedValue !== null && (
-                  <p className="text-xs sm:text-sm text-gray-500">
-                    ≈ {formatCurrency(convertedValue, displayCurrency)}
-                  </p>
-                )}
-              </div>
+        {/* Asset Details (Left) */}
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold text-gray-900 truncate">{asset.name}</p>
+          <p
+            className={cn(
+              "text-sm",
+              needsUpdate ? "text-red-600" : colors.text,
             )}
-            {/* Last Updated */}
-            <motion.div
-              className={`flex items-center gap-1 text-xs mt-1 ${needsUpdate ? "text-red-600 font-medium" : "text-gray-400"}`}
-              initial={needsUpdate ? { scale: 1 } : undefined}
-              animate={needsUpdate ? { scale: [1, 1.02, 1] } : undefined}
-              transition={
-                needsUpdate ? { duration: 2, repeat: Infinity } : undefined
-              }
-            >
-              {needsUpdate ? (
-                <AlertCircle className="h-3 w-3 flex-shrink-0" />
-              ) : (
-                <Clock className="h-3 w-3 flex-shrink-0" />
+          >
+            {ASSET_TYPE_LABELS[asset.type]}
+          </p>
+          <p
+            className={cn(
+              "text-xs mt-1",
+              needsUpdate ? "text-red-500 font-medium" : "text-gray-400",
+            )}
+          >
+            {needsUpdate && (
+              <AlertCircle className="inline-block h-3 w-3 mr-1" />
+            )}
+            Updated {formatLongDate(asset.updatedAt)}
+          </p>
+        </div>
+
+        {/* Amount (Right) */}
+        <div className="shrink-0 text-right">
+          {isCrypto && isCryptoCurrency ? (
+            <>
+              <p className="text-lg font-bold tabular-nums text-gray-900">
+                {Number(asset.value).toLocaleString(undefined, {
+                  maximumFractionDigits: 8,
+                })}{" "}
+                <span className="text-sm font-medium text-gray-500">
+                  {asset.currency}
+                </span>
+              </p>
+              {convertedValue !== null && (
+                <p className="text-sm text-gray-500 tabular-nums">
+                  ≈ {formatCurrency(convertedValue, displayCurrency)}
+                </p>
               )}
-              <span className="truncate">
-                {needsUpdate ? "Update needed: " : "Updated "}
-                {formatRelativeTime(asset.updatedAt)}
-              </span>
-            </motion.div>
-          </div>
-          {canEdit && (
-            <div className="relative flex-shrink-0">
-              <motion.button
-                onClick={() => setShowMenu(!showMenu)}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                className="p-2 hover:bg-white/50 rounded-lg transition-colors"
-              >
-                <MoreVertical className="h-4 w-4 text-gray-500" />
-              </motion.button>
-              <AnimatePresence>
-                {showMenu && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-10"
-                      onClick={() => setShowMenu(false)}
-                    />
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.95, y: -5 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95, y: -5 }}
-                      transition={{ duration: 0.15 }}
-                      className="absolute right-0 top-full mt-1 bg-white/90 backdrop-blur-xl rounded-xl shadow-glass-prominent border border-white/50 z-20 py-1 min-w-[120px] overflow-hidden"
-                    >
-                      <Link
-                        href={`/assets/${asset.id}/edit`}
-                        className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-white/50 transition-colors"
-                      >
-                        <Edit className="h-4 w-4" />
-                        Edit
-                      </Link>
-                      <button
-                        onClick={() => {
-                          setShowMenu(false);
-                          onDelete();
-                        }}
-                        className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50/50 w-full transition-colors"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        Delete
-                      </button>
-                    </motion.div>
-                  </>
-                )}
-              </AnimatePresence>
-            </div>
+            </>
+          ) : (
+            <>
+              <p className="text-lg font-bold tabular-nums text-gray-900">
+                {formatCurrency(Number(asset.value), asset.currency)}
+              </p>
+              {convertedValue !== null && (
+                <p className="text-sm text-gray-500 tabular-nums">
+                  ≈ {formatCurrency(convertedValue, displayCurrency)}
+                </p>
+              )}
+            </>
           )}
         </div>
-      </div>
+      </motion.div>
 
-      {/* Warning banner for outdated assets */}
-      {needsUpdate && canEdit && (
-        <motion.div
-          className="mt-2 pl-[52px] sm:pl-14"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Link
-            href={`/assets/${asset.id}/edit`}
-            className="inline-flex items-center gap-1 text-xs text-red-700 hover:text-red-800 font-medium group"
+      {/* Action Modal */}
+      <AnimatePresence>
+        {showActionModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowActionModal(false)}
           >
-            <motion.div whileHover={{ rotate: 15 }}>
-              <Edit className="h-3 w-3" />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Asset Header */}
+              <div className="flex items-center gap-3 mb-6">
+                <div className={cn("p-3 rounded-xl", colors.bg)}>
+                  <Icon className={cn("h-6 w-6", colors.icon)} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-gray-900 truncate">
+                    {asset.name}
+                  </p>
+                  <p className={cn("text-sm", colors.text)}>
+                    {ASSET_TYPE_LABELS[asset.type]}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowActionModal(false)}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <X className="h-5 w-5 text-gray-400" />
+                </button>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="space-y-2">
+                <button
+                  onClick={() => {
+                    setShowActionModal(false);
+                    setShowInfoModal(true);
+                  }}
+                  className="w-full flex items-center gap-3 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+                >
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <Eye className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">View Details</p>
+                    <p className="text-sm text-gray-500">
+                      See all asset information
+                    </p>
+                  </div>
+                </button>
+
+                {canEdit && (
+                  <>
+                    <Link
+                      href={`/assets/${asset.id}/edit`}
+                      onClick={() => setShowActionModal(false)}
+                      className="w-full flex items-center gap-3 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+                    >
+                      <div className="p-2 bg-amber-100 rounded-lg">
+                        <Edit className="h-5 w-5 text-amber-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">Edit Asset</p>
+                        <p className="text-sm text-gray-500">
+                          Update value or details
+                        </p>
+                      </div>
+                    </Link>
+
+                    <button
+                      onClick={() => {
+                        setShowActionModal(false);
+                        onDelete();
+                      }}
+                      className="w-full flex items-center gap-3 p-4 rounded-xl bg-red-50 hover:bg-red-100 transition-colors text-left"
+                    >
+                      <div className="p-2 bg-red-100 rounded-lg">
+                        <Trash2 className="h-5 w-5 text-red-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-red-600">Delete Asset</p>
+                        <p className="text-sm text-red-400">
+                          Remove from portfolio
+                        </p>
+                      </div>
+                    </button>
+                  </>
+                )}
+              </div>
             </motion.div>
-            Click to update value
-          </Link>
-        </motion.div>
-      )}
-    </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Info Modal */}
+      <AnimatePresence>
+        {showInfoModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowInfoModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Asset Details
+                </h3>
+                <button
+                  onClick={() => setShowInfoModal(false)}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <X className="h-5 w-5 text-gray-400" />
+                </button>
+              </div>
+
+              {/* Asset Info */}
+              <div className={cn("p-4 rounded-2xl mb-4", colors.bg)}>
+                <div className="flex items-center gap-3">
+                  <div className={cn("p-3 rounded-xl bg-white/60")}>
+                    <Icon className={cn("h-6 w-6", colors.icon)} />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900">{asset.name}</p>
+                    <p className={cn("text-sm", colors.text)}>
+                      {ASSET_TYPE_LABELS[asset.type]}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Details */}
+              <div className="space-y-4">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Value</span>
+                  <span className="font-semibold text-gray-900">
+                    {isCrypto && isCryptoCurrency
+                      ? `${Number(asset.value).toLocaleString(undefined, { maximumFractionDigits: 8 })} ${asset.currency}`
+                      : formatCurrency(Number(asset.value), asset.currency)}
+                  </span>
+                </div>
+                {convertedValue !== null && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Converted</span>
+                    <span className="font-medium text-gray-700">
+                      ≈ {formatCurrency(convertedValue, displayCurrency)}
+                    </span>
+                  </div>
+                )}
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Currency</span>
+                  <span className="font-medium text-gray-700">
+                    {asset.currency}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Last Updated</span>
+                  <span
+                    className={cn(
+                      "font-medium",
+                      needsUpdate ? "text-red-600" : "text-gray-700",
+                    )}
+                  >
+                    {formatLongDate(asset.updatedAt)}
+                  </span>
+                </div>
+                {asset.notes && (
+                  <div>
+                    <span className="text-gray-500 block mb-1">Notes</span>
+                    <p className="text-gray-700 bg-gray-50 p-3 rounded-xl text-sm">
+                      {asset.notes}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {needsUpdate && (
+                <div className="mt-4 p-3 bg-red-50 rounded-xl border border-red-200">
+                  <div className="flex items-center gap-2 text-red-600 text-sm">
+                    <AlertCircle className="h-4 w-4" />
+                    <span className="font-medium">
+                      This asset needs an update
+                    </span>
+                  </div>
+                  <p className="text-red-500 text-xs mt-1">
+                    Last updated more than 3 months ago
+                  </p>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
