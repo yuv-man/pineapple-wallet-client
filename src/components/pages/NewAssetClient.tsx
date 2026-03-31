@@ -62,6 +62,12 @@ export default function NewAssetClient() {
 
   const portfolioId = params.id as string;
 
+  useEffect(() => {
+    if (selectedType === AssetType.CRYPTO) {
+      fetchRates('USD');
+    }
+  }, [selectedType, fetchRates]);
+
   const {
     register,
     handleSubmit,
@@ -81,26 +87,32 @@ export default function NewAssetClient() {
     const cryptoPrice = getCryptoPrice(selectedCryptoSymbol, selectedFiatCurrency);
     if (cryptoPrice <= 0) return;
 
+    const ticker = selectedCryptoSymbol.toUpperCase();
+
     if (cryptoInputMode === 'crypto' && cryptoAmount) {
       const amount = parseFloat(cryptoAmount);
       if (!isNaN(amount)) {
         const calculatedFiat = amount * cryptoPrice;
         setFiatValue(calculatedFiat.toFixed(2));
-        // Set the form value (store fiat value in the asset)
-        setValue('value', calculatedFiat);
-        setValue('currency', selectedFiatCurrency);
+        // Persist coin quantity + ticker (same idea as bank: value is in asset currency)
+        setValue('value', amount);
+        setValue('currency', ticker);
         setValue('details.quantity', amount);
-        setValue('details.symbol', selectedCryptoSymbol);
+        setValue('details.symbol', ticker);
+        setValue('details.fiatReferenceCurrency', selectedFiatCurrency);
+        setValue('details.fiatValueAtSave', calculatedFiat);
       }
     } else if (cryptoInputMode === 'fiat' && fiatValue) {
       const fiat = parseFloat(fiatValue);
       if (!isNaN(fiat)) {
         const calculatedCrypto = fiat / cryptoPrice;
         setCryptoAmount(calculatedCrypto.toFixed(8));
-        setValue('value', fiat);
-        setValue('currency', selectedFiatCurrency);
+        setValue('value', calculatedCrypto);
+        setValue('currency', ticker);
         setValue('details.quantity', calculatedCrypto);
-        setValue('details.symbol', selectedCryptoSymbol);
+        setValue('details.symbol', ticker);
+        setValue('details.fiatReferenceCurrency', selectedFiatCurrency);
+        setValue('details.fiatValueAtSave', fiat);
       }
     }
   }, [cryptoInputMode, cryptoAmount, fiatValue, selectedCryptoSymbol, selectedFiatCurrency, rates, getCryptoPrice, setValue, selectedType]);
@@ -122,6 +134,13 @@ export default function NewAssetClient() {
   const handleTypeSelect = (type: AssetType) => {
     setSelectedType(type);
     setValue('type', type);
+    if (type === AssetType.CRYPTO) {
+      setValue('currency', selectedCryptoSymbol.toUpperCase());
+      setCryptoAmount('');
+      setFiatValue('');
+    } else {
+      setValue('currency', 'USD');
+    }
   };
 
   return (

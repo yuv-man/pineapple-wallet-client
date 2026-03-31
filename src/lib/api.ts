@@ -146,3 +146,72 @@ export const currencyApi = {
       params: { portfolioId, currency },
     }),
 };
+
+// Properties API
+export const propertiesApi = {
+  getAll: () => api.get("/properties"),
+  getOne: (id: string) => api.get(`/properties/${id}`),
+  create: (data: { name: string; address?: string; description?: string }) =>
+    api.post("/properties", data),
+  update: (
+    id: string,
+    data: { name?: string; address?: string; description?: string }
+  ) => api.patch(`/properties/${id}`, data),
+  delete: (id: string) => api.delete(`/properties/${id}`),
+};
+
+// Property Transactions API
+export const propertyTransactionsApi = {
+  getAllForProperty: (propertyId: string) =>
+    api.get(`/properties/${propertyId}/transactions`),
+  getSummary: (propertyId: string) =>
+    api.get(`/properties/${propertyId}/transactions/summary`),
+  getOne: (id: string) => api.get(`/property-transactions/${id}`),
+  create: (
+    propertyId: string,
+    data: {
+      categoryId: string;
+      type: string;
+      amount: number;
+      currency?: string;
+      date: string;
+      description?: string;
+    }
+  ) => api.post(`/properties/${propertyId}/transactions`, data),
+  update: (
+    id: string,
+    data: {
+      categoryId?: string;
+      amount?: number;
+      currency?: string;
+      date?: string;
+      description?: string;
+    }
+  ) => api.patch(`/property-transactions/${id}`, data),
+  delete: (id: string) => api.delete(`/property-transactions/${id}`),
+};
+
+// Property Categories API
+export const propertyCategoriesApi = {
+  getAll: () => api.get("/property-categories"),
+  create: (data: { name: string; type: string }) =>
+    api.post("/property-categories", data),
+  delete: (id: string) => api.delete(`/property-categories/${id}`),
+};
+
+// Property Sharing API
+export const propertySharingApi = {
+  shareProperty: (
+    propertyId: string,
+    data: { email: string; permission?: string }
+  ) => api.post(`/properties/${propertyId}/share`, data),
+  getShares: (propertyId: string) =>
+    api.get(`/properties/${propertyId}/shares`),
+  getPropertyInvitations: () => api.get("/property-invitations"),
+  respondToPropertyInvitation: (id: string, accept: boolean) =>
+    api.patch(`/property-invitations/${id}`, { accept }),
+  updatePropertyShare: (id: string, permission: string) =>
+    api.patch(`/property-shares/${id}`, { permission }),
+  revokePropertyShare: (id: string) => api.delete(`/property-shares/${id}`),
+  getPropertiesSharedWithMe: () => api.get("/properties-shared-with-me"),
+};

@@ -53,6 +53,12 @@ export default function EditAssetClient() {
 
   const assetId = params.id as string;
 
+  useEffect(() => {
+    if (asset?.type === AssetType.CRYPTO) {
+      fetchRates('USD');
+    }
+  }, [asset?.type, asset?.id, fetchRates]);
+
   const {
     register,
     handleSubmit,
@@ -74,13 +80,36 @@ export default function EditAssetClient() {
         setValue('notes', assetData.notes || '');
         setValue('details', assetData.details || {});
 
-        // Initialize crypto fields if this is a crypto asset
+        // Initialize crypto fields (new model: value = coin qty, currency = ticker; legacy: fiat in value)
         if (assetData.type === AssetType.CRYPTO) {
           const details = assetData.details || {};
-          setSelectedCryptoSymbol(details.symbol || 'BTC');
-          setCryptoAmount(String(details.quantity || ''));
-          setFiatValue(String(Number(assetData.value) || ''));
-          setSelectedFiatCurrency(assetData.currency || 'USD');
+          const curU = (assetData.currency || '').toUpperCase();
+          if (CRYPTO_SYMBOLS.includes(curU)) {
+            setSelectedCryptoSymbol(curU);
+            setCryptoAmount(String(Number(assetData.value)));
+            setSelectedFiatCurrency(
+              typeof details.fiatReferenceCurrency === 'string'
+                ? details.fiatReferenceCurrency
+                : 'USD',
+            );
+            setFiatValue('');
+          } else {
+            const sym = String(details.symbol || 'BTC').toUpperCase();
+            setSelectedCryptoSymbol(sym);
+            setSelectedFiatCurrency(
+              FIAT_CURRENCIES.includes(curU) ? curU : 'USD',
+            );
+            const qty =
+              details.quantity != null ? Number(details.quantity) : NaN;
+            if (Number.isFinite(qty)) {
+              setCryptoAmount(String(qty));
+              setFiatValue(String(Number(assetData.value)));
+            } else {
+              setCryptoInputMode('fiat');
+              setFiatValue(String(Number(assetData.value)));
+              setCryptoAmount('');
+            }
+          }
         }
       } catch {
         router.back();
@@ -99,25 +128,31 @@ export default function EditAssetClient() {
     const cryptoPrice = getCryptoPrice(selectedCryptoSymbol, selectedFiatCurrency);
     if (cryptoPrice <= 0) return;
 
+    const ticker = selectedCryptoSymbol.toUpperCase();
+
     if (cryptoInputMode === 'crypto' && cryptoAmount) {
       const amount = parseFloat(cryptoAmount);
       if (!isNaN(amount)) {
         const calculatedFiat = amount * cryptoPrice;
         setFiatValue(calculatedFiat.toFixed(2));
-        setValue('value', calculatedFiat);
-        setValue('currency', selectedFiatCurrency);
+        setValue('value', amount);
+        setValue('currency', ticker);
         setValue('details.quantity', amount);
-        setValue('details.symbol', selectedCryptoSymbol);
+        setValue('details.symbol', ticker);
+        setValue('details.fiatReferenceCurrency', selectedFiatCurrency);
+        setValue('details.fiatValueAtSave', calculatedFiat);
       }
     } else if (cryptoInputMode === 'fiat' && fiatValue) {
       const fiat = parseFloat(fiatValue);
       if (!isNaN(fiat)) {
         const calculatedCrypto = fiat / cryptoPrice;
         setCryptoAmount(calculatedCrypto.toFixed(8));
-        setValue('value', fiat);
-        setValue('currency', selectedFiatCurrency);
+        setValue('value', calculatedCrypto);
+        setValue('currency', ticker);
         setValue('details.quantity', calculatedCrypto);
-        setValue('details.symbol', selectedCryptoSymbol);
+        setValue('details.symbol', ticker);
+        setValue('details.fiatReferenceCurrency', selectedFiatCurrency);
+        setValue('details.fiatValueAtSave', fiat);
       }
     }
   }, [cryptoInputMode, cryptoAmount, fiatValue, selectedCryptoSymbol, selectedFiatCurrency, rates, getCryptoPrice, setValue, asset]);

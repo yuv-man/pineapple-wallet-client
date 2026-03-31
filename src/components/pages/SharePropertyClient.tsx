@@ -7,15 +7,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { sharingApi, portfoliosApi, usersApi } from '@/lib/api';
-import { PortfolioShare, Permission } from '@/types';
+import { propertySharingApi, propertiesApi, usersApi } from '@/lib/api';
+import { PropertyShare, Permission } from '@/types';
 import { getInitials } from '@/lib/utils';
 import {
   ArrowLeft,
   Loader2,
   UserPlus,
   Trash2,
-  Share2,
+  Building2,
 } from 'lucide-react';
 import { PageTransition, AnimatedList, AnimatedListItem } from '@/components/animations';
 
@@ -26,18 +26,18 @@ const shareSchema = z.object({
 
 type ShareForm = z.infer<typeof shareSchema>;
 
-export default function SharePortfolioClient() {
+export default function SharePropertyClient() {
   const params = useParams();
   const router = useRouter();
-  const [portfolioName, setPortfolioName] = useState('');
-  const [shares, setShares] = useState<PortfolioShare[]>([]);
+  const [propertyName, setPropertyName] = useState('');
+  const [shares, setShares] = useState<PropertyShare[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSharing, setIsSharing] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
 
-  const portfolioId = params.id as string;
+  const propertyId = params.id as string;
 
   const {
     register,
@@ -58,21 +58,21 @@ export default function SharePortfolioClient() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [portfolioRes, sharesRes] = await Promise.all([
-          portfoliosApi.getOne(portfolioId),
-          sharingApi.getShares(portfolioId),
+        const [propertyRes, sharesRes] = await Promise.all([
+          propertiesApi.getOne(propertyId),
+          propertySharingApi.getShares(propertyId),
         ]);
-        setPortfolioName(portfolioRes.data.name);
+        setPropertyName(propertyRes.data.name);
         setShares(sharesRes.data);
       } catch {
-        router.push('/portfolios');
+        router.push('/properties');
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchData();
-  }, [portfolioId, router]);
+  }, [propertyId, router]);
 
   useEffect(() => {
     const searchUsers = async () => {
@@ -99,14 +99,14 @@ export default function SharePortfolioClient() {
     setSuccess(null);
 
     try {
-      const response = await sharingApi.sharePortfolio(portfolioId, data);
+      const response = await propertySharingApi.shareProperty(propertyId, data);
       setShares([response.data, ...shares]);
       setSuccess(`Invitation sent to ${data.email}`);
       reset();
       setSearchResults([]);
     } catch (err: any) {
       setError(
-        err.response?.data?.message || 'Failed to share portfolio'
+        err.response?.data?.message || 'Failed to share property'
       );
     } finally {
       setIsSharing(false);
@@ -115,7 +115,7 @@ export default function SharePortfolioClient() {
 
   const handleRevokeShare = async (shareId: string) => {
     try {
-      await sharingApi.revokeShare(shareId);
+      await propertySharingApi.revokePropertyShare(shareId);
       setShares(shares.filter((s) => s.id !== shareId));
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to revoke share');
@@ -124,7 +124,7 @@ export default function SharePortfolioClient() {
 
   const handleUpdatePermission = async (shareId: string, permission: Permission) => {
     try {
-      await sharingApi.updateShare(shareId, permission);
+      await propertySharingApi.updatePropertyShare(shareId, permission);
       setShares(
         shares.map((s) =>
           s.id === shareId ? { ...s, permission } : s
@@ -157,13 +157,13 @@ export default function SharePortfolioClient() {
           transition={{ duration: 0.3 }}
         >
           <Link
-            href={`/portfolios/${portfolioId}`}
+            href={`/properties/${propertyId}`}
             className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-6 group"
           >
             <motion.div whileHover={{ x: -4 }} transition={{ type: 'spring', stiffness: 400 }}>
               <ArrowLeft className="h-4 w-4 mr-2" />
             </motion.div>
-            Back to Portfolio
+            Back to Property
           </Link>
         </motion.div>
 
@@ -178,14 +178,14 @@ export default function SharePortfolioClient() {
               className="icon-container-primary hidden sm:flex"
               whileHover={{ rotate: 5, scale: 1.05 }}
             >
-              <Share2 className="h-6 w-6 text-pineapple" />
+              <Building2 className="h-6 w-6 text-pineapple" />
             </motion.div>
             <div>
               <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                Share Portfolio
+                Share Property
               </h1>
               <p className="text-gray-500 text-sm sm:text-base">
-                Share &quot;{portfolioName}&quot; with your partner or collaborators
+                Share &quot;{propertyName}&quot; with your partner or collaborators
               </p>
             </div>
           </div>
@@ -293,7 +293,7 @@ export default function SharePortfolioClient() {
                   View Only - Can see but not edit
                 </option>
                 <option value={Permission.EDIT}>
-                  Edit - Can view and modify assets
+                  Edit - Can view and add transactions
                 </option>
               </select>
             </div>
@@ -336,7 +336,7 @@ export default function SharePortfolioClient() {
 
           {shares.length === 0 ? (
             <p className="text-gray-500 text-center py-6">
-              This portfolio is not shared with anyone yet
+              This property is not shared with anyone yet
             </p>
           ) : (
             <AnimatedList className="divide-y divide-white/40">
@@ -364,7 +364,7 @@ function ShareRow({
   onRevoke,
   onUpdatePermission,
 }: {
-  share: PortfolioShare;
+  share: PropertyShare;
   onRevoke: () => void;
   onUpdatePermission: (permission: Permission) => void;
 }) {

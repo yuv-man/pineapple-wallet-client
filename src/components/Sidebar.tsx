@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   Wallet,
+  Building2,
   Share2,
   Bell,
   Settings,
@@ -22,6 +23,7 @@ import { authApi } from "@/lib/api";
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Portfolios", href: "/portfolios", icon: Wallet },
+  { name: "Properties", href: "/properties", icon: Building2 },
   { name: "Shared With Me", href: "/shared", icon: Share2 },
   { name: "Invitations", href: "/invitations", icon: Bell },
 ];

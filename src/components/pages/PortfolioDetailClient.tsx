@@ -56,6 +56,27 @@ function formatLongDate(dateString: string): string {
   }).format(new Date(dateString));
 }
 
+/** Rates + UI use uppercase tickers; asset.currency from API may be lowercase. */
+const CRYPTO_TICKERS = [
+  "BTC",
+  "ETH",
+  "USDT",
+  "BNB",
+  "XRP",
+  "ADA",
+  "SOL",
+  "DOGE",
+] as const;
+
+function cryptoTickerUpper(currency: string | undefined): string {
+  return (currency ?? "").toUpperCase();
+}
+
+function isKnownCryptoTicker(currency: string | undefined): boolean {
+  const c = cryptoTickerUpper(currency);
+  return (CRYPTO_TICKERS as readonly string[]).includes(c);
+}
+
 const ASSET_ICONS: Record<AssetType, React.ElementType> = {
   [AssetType.BANK_ACCOUNT]: Landmark,
   [AssetType.REAL_ESTATE]: Home,
@@ -198,18 +219,6 @@ export default function PortfolioDetailClient() {
 
   const canEdit = portfolio.isOwner || portfolio.permission === Permission.EDIT;
 
-  // Crypto symbols for detection
-  const cryptoSymbols = [
-    "BTC",
-    "ETH",
-    "USDT",
-    "BNB",
-    "XRP",
-    "ADA",
-    "SOL",
-    "DOGE",
-  ];
-
   // Calculate total in user's display currency
   const calculateTotalInDisplayCurrency = () => {
     if (!portfolio.assets.length) return 0;
@@ -217,11 +226,12 @@ export default function PortfolioDetailClient() {
     return portfolio.assets.reduce((total, asset) => {
       const value = Number(asset.value);
       const isCrypto = asset.type === AssetType.CRYPTO;
-      const isCryptoCurrency = cryptoSymbols.includes(asset.currency);
+      const ticker = cryptoTickerUpper(asset.currency);
+      const isCryptoCurrency = isKnownCryptoTicker(asset.currency);
 
       if (isCrypto && isCryptoCurrency) {
         // For crypto: value is amount of crypto, multiply by price
-        const cryptoPrice = getCryptoPrice(asset.currency);
+        const cryptoPrice = getCryptoPrice(ticker);
         if (cryptoPrice) {
           const valueInUSD = value * cryptoPrice;
           if (displayCurrency === "USD") {
@@ -542,26 +552,16 @@ function AssetRow({
   const colors = ASSET_TYPE_COLORS[asset.type];
   const needsUpdate = isOlderThan3Months(asset.updatedAt);
 
-  // Check if this is a crypto asset
   const isCrypto = asset.type === AssetType.CRYPTO;
-  const cryptoSymbols = [
-    "BTC",
-    "ETH",
-    "USDT",
-    "BNB",
-    "XRP",
-    "ADA",
-    "SOL",
-    "DOGE",
-  ];
-  const isCryptoCurrency = cryptoSymbols.includes(asset.currency);
+  const ticker = cryptoTickerUpper(asset.currency);
+  const isCryptoCurrency = isKnownCryptoTicker(asset.currency);
 
   // Calculate converted value
   const getConvertedValue = () => {
     const value = Number(asset.value);
 
     if (isCrypto && isCryptoCurrency) {
-      const cryptoPrice = getCryptoPrice(asset.currency);
+      const cryptoPrice = getCryptoPrice(ticker);
       if (cryptoPrice) {
         const valueInUSD = value * cryptoPrice;
         if (displayCurrency === "USD") {
@@ -644,9 +644,7 @@ function AssetRow({
                 {Number(asset.value).toLocaleString(undefined, {
                   maximumFractionDigits: 8,
                 })}{" "}
-                <span className="text-sm font-medium text-gray-500">
-                  {asset.currency}
-                </span>
+                {ticker}
               </p>
               {convertedValue !== null && (
                 <p className="text-sm text-gray-500 tabular-nums">
@@ -823,7 +821,7 @@ function AssetRow({
                   <span className="text-gray-500">Value</span>
                   <span className="font-semibold text-gray-900">
                     {isCrypto && isCryptoCurrency
-                      ? `${Number(asset.value).toLocaleString(undefined, { maximumFractionDigits: 8 })} ${asset.currency}`
+                      ? `${Number(asset.value).toLocaleString(undefined, { maximumFractionDigits: 8 })} ${ticker}`
                       : formatCurrency(Number(asset.value), asset.currency)}
                   </span>
                 </div>

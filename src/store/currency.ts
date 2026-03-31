@@ -63,69 +63,51 @@ export const useCurrencyStore = create<CurrencyState>()(
         const { rates } = get();
         if (!rates || !rates.rates) return amount;
 
-        if (from === to) return amount;
+        const fromU = from?.toUpperCase?.() ?? from;
+        const toU = to?.toUpperCase?.() ?? to;
 
-        // If we have rates based on USD
-        const fromRate = rates.rates[from];
-        const toRate = rates.rates[to];
+        if (fromU === toU) return amount;
 
-        if (!fromRate || !toRate) return amount;
-
-        // Convert: amount in 'from' currency to 'to' currency
-        // rates are relative to base (USD), so:
-        // amount_in_USD = amount / fromRate (if fromRate is how much 1 USD = X from)
-        // Actually, the backend returns rates where rate = 1 base / X currency
-        // So to convert from A to B: amount * (toRate / fromRate)
-        // But we need to understand the rate format first
-
-        // Based on the backend code, rates[X] = how much X you get for 1 base currency
-        // So to convert amount from A to B:
-        // First convert A to base: amountInBase = amount / rates[A]
-        // Then convert base to B: result = amountInBase * rates[B]
-        // Combined: result = amount * rates[B] / rates[A]
-
-        // But for crypto, the rate is inverted (1 / price)
-        // Let's check if from or to is crypto
         const cryptos = ['BTC', 'ETH', 'USDT', 'BNB', 'XRP', 'ADA', 'SOL', 'DOGE'];
+        const fromRate = rates.rates[fromU];
+        const toRate = rates.rates[toU];
 
-        if (cryptos.includes(from)) {
-          // Converting from crypto to fiat
-          // fromRate is very small (e.g., 0.000023 for BTC meaning 1 USD = 0.000023 BTC)
-          // So 1 BTC = 1 / 0.000023 USD
+        if (cryptos.includes(fromU)) {
+          if (!fromRate || !toRate) return amount;
           const cryptoPriceInBase = 1 / fromRate;
           const amountInBase = amount * cryptoPriceInBase;
-          return amountInBase * (toRate || 1);
-        }
-
-        if (cryptos.includes(to)) {
-          // Converting from fiat to crypto
-          // First get amount in base currency
-          const amountInBase = amount / (fromRate || 1);
-          // toRate is small (e.g., 0.000023), so multiply
           return amountInBase * toRate;
         }
 
-        // Both are fiat
-        return amount * toRate / fromRate;
+        if (cryptos.includes(toU)) {
+          if (!fromRate || !toRate) return amount;
+          const amountInBase = amount / fromRate;
+          return amountInBase * toRate;
+        }
+
+        if (!fromRate || !toRate) return amount;
+        return (amount * toRate) / fromRate;
       },
 
       getCryptoPrice: (symbol: string, fiatCurrency = 'USD') => {
         const { rates } = get();
         if (!rates || !rates.rates) return 0;
 
-        const cryptoRate = rates.rates[symbol];
+        const key = symbol?.toUpperCase?.() ?? symbol;
+        const cryptoRate = rates.rates[key];
         if (!cryptoRate) return 0;
 
         // cryptoRate is how much crypto you get for 1 base currency
         // So price of 1 crypto in base = 1 / cryptoRate
         const priceInBase = 1 / cryptoRate;
 
-        if (fiatCurrency === rates.base) {
+        const fiatU = fiatCurrency?.toUpperCase?.() ?? fiatCurrency;
+        const baseU = rates.base?.toUpperCase?.() ?? rates.base;
+        if (fiatU === baseU) {
           return priceInBase;
         }
 
-        // Convert to target fiat
-        const fiatRate = rates.rates[fiatCurrency];
+        const fiatRate = rates.rates[fiatU];
         if (!fiatRate) return priceInBase;
 
         return priceInBase * fiatRate;
