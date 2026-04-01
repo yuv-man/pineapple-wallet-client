@@ -22,18 +22,22 @@ export default function InvitationsPage() {
 
   useEffect(() => {
     const fetchInvitations = async () => {
+      // Fetch independently so one failure doesn't block the other
       try {
-        const [portfolioRes, propertyRes] = await Promise.all([
-          sharingApi.getInvitations(),
-          propertySharingApi.getPropertyInvitations(),
-        ]);
+        const portfolioRes = await sharingApi.getInvitations();
         setPortfolioInvitations(portfolioRes.data);
+      } catch (error) {
+        console.error('Failed to fetch portfolio invitations:', error);
+      }
+
+      try {
+        const propertyRes = await propertySharingApi.getPropertyInvitations();
         setPropertyInvitations(propertyRes.data);
       } catch (error) {
-        console.error('Failed to fetch invitations:', error);
-      } finally {
-        setIsLoading(false);
+        console.error('Failed to fetch property invitations:', error);
       }
+
+      setIsLoading(false);
     };
 
     fetchInvitations();
@@ -138,7 +142,7 @@ export default function InvitationsPage() {
           {propertyInvitations.length > 0 && (
             <div>
               <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Building2 className="h-5 w-5 text-pineapple" />
+                <Building2 className="h-5 w-5 text-salmon" />
                 Property Invitations
               </h2>
               <AnimatedList className="space-y-4">
@@ -292,9 +296,9 @@ function PropertyInvitationCard({
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div className="flex items-start gap-3 sm:gap-4 min-w-0">
           <motion.div
-            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-blue-100 to-blue-50
-                       backdrop-blur-sm border border-blue-200/50
-                       flex items-center justify-center text-blue-600 font-semibold
+            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-salmon/30 to-salmon/10
+                       backdrop-blur-sm border border-salmon/20
+                       flex items-center justify-center text-salmon-dark font-semibold
                        shadow-sm shrink-0"
             whileHover={{ scale: 1.05, rotate: 5 }}
           >
