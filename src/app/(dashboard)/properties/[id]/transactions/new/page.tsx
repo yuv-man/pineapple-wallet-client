@@ -6,9 +6,9 @@ import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { propertyTransactionsApi, propertyCategoriesApi } from '@/lib/api';
+import { propertyTransactionsApi, propertyCategoriesApi, currencyApi } from '@/lib/api';
 import { PropertyCategory, TransactionType, CategoryType } from '@/types';
-import { ArrowLeft, Loader2, Plus, TrendingUp, TrendingDown } from 'lucide-react';
+import { ArrowLeft, Loader2, Plus, TrendingUp, TrendingDown, ChevronDown } from 'lucide-react';
 
 const transactionSchema = z.object({
   categoryId: z.string().min(1, 'Category is required'),
@@ -33,6 +33,8 @@ export default function NewTransactionPage() {
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+  const [currencies, setCurrencies] = useState<{ fiat: string[]; crypto: string[] }>({ fiat: [], crypto: [] });
+  const [isLoadingCurrencies, setIsLoadingCurrencies] = useState(true);
 
   const {
     register,
@@ -50,6 +52,21 @@ export default function NewTransactionPage() {
   });
 
   const selectedType = watch('type');
+  const selectedCurrency = watch('currency');
+
+  const getCurrencySymbol = (currency: string) => {
+    try {
+      const formatter = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: currency,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      });
+      return formatter.format(0).replace(/\d/g, '').trim();
+    } catch {
+      return currency;
+    }
+  };
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -62,7 +79,20 @@ export default function NewTransactionPage() {
         setIsLoadingCategories(false);
       }
     };
+
+    const fetchCurrencies = async () => {
+      try {
+        const response = await currencyApi.getSupportedCurrencies();
+        setCurrencies(response.data);
+      } catch (err) {
+        console.error('Failed to fetch currencies:', err);
+      } finally {
+        setIsLoadingCurrencies(false);
+      }
+    };
+
     fetchCategories();
+    fetchCurrencies();
   }, []);
 
   const filteredCategories = categories.filter(
@@ -197,7 +227,7 @@ export default function NewTransactionPage() {
                   <button
                     type="button"
                     onClick={() => setShowNewCategory(true)}
-                    className="mt-2 text-sm text-pineapple hover:text-pineapple-dark flex items-center gap-1"
+                    className="mt-2 text-sm text-salmon hover:text-salmon-dark flex items-center gap-1"
                   >
                     <Plus className="h-4 w-4" />
                     Add custom category
@@ -216,7 +246,7 @@ export default function NewTransactionPage() {
                         type="button"
                         onClick={handleCreateCategory}
                         disabled={isCreatingCategory || !newCategoryName.trim()}
-                        className="btn btn-primary"
+                        className="btn btn-salmon"
                       >
                         {isCreatingCategory ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -241,22 +271,57 @@ export default function NewTransactionPage() {
             )}
           </div>
 
-          {/* Amount */}
+          {/* Amount and Currency */}
           <div>
             <label htmlFor="amount" className="label">
               Amount
             </label>
-            <div className="relative mt-1">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
-              <input
-                id="amount"
-                type="number"
-                step="0.01"
-                min="0"
-                className="input pl-8"
-                placeholder="0.00"
-                {...register('amount', { valueAsNumber: true })}
-              />
+            <div className="flex gap-3 mt-1">
+              <div className="relative flex-1">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                  {getCurrencySymbol(selectedCurrency || 'USD')}
+                </span>
+                <input
+                  id="amount"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  className="input pl-8"
+                  placeholder="0.00"
+                  {...register('amount', { valueAsNumber: true })}
+                />
+              </div>
+              <div className="relative w-32">
+                {isLoadingCurrencies ? (
+                  <div className="input flex items-center justify-center">
+                    <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                  </div>
+                ) : (
+                  <>
+                    <select
+                      id="currency"
+                      className="input appearance-none pr-8"
+                      {...register('currency')}
+                    >
+                      <optgroup label="Fiat">
+                        {currencies.fiat.map((currency) => (
+                          <option key={currency} value={currency}>
+                            {currency}
+                          </option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="Crypto">
+                        {currencies.crypto.map((currency) => (
+                          <option key={currency} value={currency}>
+                            {currency}
+                          </option>
+                        ))}
+                      </optgroup>
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                  </>
+                )}
+              </div>
             </div>
             {errors.amount && (
               <p className="text-red-500 text-sm mt-1">{errors.amount.message}</p>
@@ -301,7 +366,7 @@ export default function NewTransactionPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="btn btn-primary"
+              className="btn btn-salmon"
             >
               {isLoading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />

@@ -38,6 +38,11 @@ const config: Config = {
           DEFAULT: '#F7B500',
           dark: '#C99000',
         },
+        salmon: {
+          light: '#FFCCBC',
+          DEFAULT: '#FF8A65',
+          dark: '#E57350',
+        },
         border: 'hsl(var(--border))',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
@@ -85,6 +90,8 @@ const config: Config = {
         'glass-inset': 'inset 0 1px 1px 0 rgba(255, 255, 255, 0.4)',
         'glow-pineapple': '0 0 20px rgba(247, 181, 0, 0.3)',
         'glow-pineapple-lg': '0 0 40px rgba(247, 181, 0, 0.4)',
+        'glow-salmon': '0 0 20px rgba(255, 138, 101, 0.3)',
+        'glow-salmon-lg': '0 0 40px rgba(255, 138, 101, 0.4)',
       },
       keyframes: {
         shimmer: {
@@ -113,6 +120,7 @@ const config: Config = {
       backgroundImage: {
         'glass-gradient': 'linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%)',
         'pineapple-gradient': 'linear-gradient(135deg, #FFE066 0%, #F7B500 50%, #C99000 100%)',
+        'salmon-gradient': 'linear-gradient(135deg, #FFCCBC 0%, #FF8A65 50%, #E57350 100%)',
         'dark-glass': 'linear-gradient(135deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.05) 100%)',
       },
     },

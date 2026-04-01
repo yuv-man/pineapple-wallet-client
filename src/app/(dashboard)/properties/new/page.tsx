@@ -119,7 +119,7 @@ export default function NewPropertyPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="btn btn-primary"
+              className="btn btn-salmon"
             >
               {isLoading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />

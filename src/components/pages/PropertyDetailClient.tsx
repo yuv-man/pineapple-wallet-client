@@ -109,7 +109,7 @@ export function PropertyDetailClient() {
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
         >
-          <Loader2 className="h-8 w-8 text-pineapple" />
+          <Loader2 className="h-8 w-8 text-salmon" />
         </motion.div>
       </div>
     );
@@ -142,8 +142,8 @@ export function PropertyDetailClient() {
         >
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
             <div className="flex items-start gap-4">
-              <div className="icon-container-primary">
-                <Building2 className="h-6 w-6 text-pineapple" />
+              <div className="icon-container-salmon">
+                <Building2 className="h-6 w-6 text-salmon" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
@@ -206,7 +206,7 @@ export function PropertyDetailClient() {
             {canEdit && (
               <Link
                 href={`/properties/${propertyId}/transactions/new`}
-                className="btn btn-primary"
+                className="btn btn-salmon"
               >
                 <PlusCircle className="h-5 w-5 mr-2" />
                 Add Transaction
@@ -257,7 +257,7 @@ export function PropertyDetailClient() {
               {canEdit && (
                 <Link
                   href={`/properties/${propertyId}/transactions/new`}
-                  className="btn btn-primary"
+                  className="btn btn-salmon"
                 >
                   Add First Transaction
                 </Link>

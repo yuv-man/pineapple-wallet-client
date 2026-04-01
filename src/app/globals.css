@@ -61,6 +61,14 @@
            backdrop-blur-sm;
   }
 
+  .btn-salmon {
+    @apply bg-gradient-to-r from-salmon-light via-salmon to-salmon-dark
+           text-white font-semibold
+           shadow-lg shadow-salmon/25
+           hover:shadow-xl hover:shadow-salmon/30 hover:scale-[1.02]
+           backdrop-blur-sm;
+  }
+
   .btn-secondary {
     @apply bg-white/60 backdrop-blur-md text-gray-800
            border border-white/50
@@ -161,6 +169,12 @@
     @apply icon-container
            bg-gradient-to-br from-pineapple/20 to-pineapple/10
            border-pineapple/20;
+  }
+
+  .icon-container-salmon {
+    @apply icon-container
+           bg-gradient-to-br from-salmon/20 to-salmon/10
+           border-salmon/20;
   }
 
   .icon-container-sm {

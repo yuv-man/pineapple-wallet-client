@@ -57,7 +57,7 @@ export default function PropertiesPage() {
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
         >
-          <Loader2 className="h-8 w-8 text-pineapple" />
+          <Loader2 className="h-8 w-8 text-salmon" />
         </motion.div>
       </div>
     );
@@ -77,7 +77,7 @@ export default function PropertiesPage() {
           <p className="text-gray-600">Track expenses and profits for your properties</p>
         </div>
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-          <Link href="/properties/new" className="btn btn-primary">
+          <Link href="/properties/new" className="btn btn-salmon">
             <PlusCircle className="h-5 w-5 mr-2" />
             New Property
           </Link>
@@ -102,7 +102,7 @@ export default function PropertiesPage() {
             Add your first property to start tracking rental income, expenses, and profit margins
           </p>
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-            <Link href="/properties/new" className="btn btn-primary inline-flex">
+            <Link href="/properties/new" className="btn btn-salmon inline-flex">
               <PlusCircle className="h-5 w-5 mr-2" />
               Add Property
             </Link>
@@ -164,11 +164,11 @@ function PropertyCard({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-4 min-w-0">
             <motion.div
-              className={isOwner ? "icon-container-primary" : "icon-container bg-blue-50/80 border-blue-100/50"}
+              className={isOwner ? "icon-container-salmon" : "icon-container bg-blue-50/80 border-blue-100/50"}
               whileHover={{ rotate: 5, scale: 1.05 }}
             >
               {isOwner ? (
-                <Building2 className="h-6 w-6 text-pineapple" />
+                <Building2 className="h-6 w-6 text-salmon" />
               ) : (
                 <Share2 className="h-6 w-6 text-blue-600" />
               )}
@@ -193,7 +193,7 @@ function PropertyCard({
                   </span>
                 )}
                 <span className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-pineapple/60" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-salmon/60" />
                   {property.transactions?.length || 0} transactions
                 </span>
                 {isOwner && sharedCount > 0 && (

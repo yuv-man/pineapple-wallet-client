@@ -142,7 +142,7 @@ export default function SharePropertyClient() {
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
         >
-          <Loader2 className="h-8 w-8 text-pineapple" />
+          <Loader2 className="h-8 w-8 text-salmon" />
         </motion.div>
       </div>
     );
@@ -175,10 +175,10 @@ export default function SharePropertyClient() {
         >
           <div className="flex items-center gap-4 mb-2">
             <motion.div
-              className="icon-container-primary hidden sm:flex"
+              className="icon-container-salmon hidden sm:flex"
               whileHover={{ rotate: 5, scale: 1.05 }}
             >
-              <Building2 className="h-6 w-6 text-pineapple" />
+              <Building2 className="h-6 w-6 text-salmon" />
             </motion.div>
             <div>
               <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
@@ -261,10 +261,10 @@ export default function SharePropertyClient() {
                           setValue('email', user.email);
                           setSearchResults([]);
                         }}
-                        whileHover={{ backgroundColor: 'rgba(247, 181, 0, 0.1)' }}
+                        whileHover={{ backgroundColor: 'rgba(255, 138, 101, 0.1)' }}
                         className="flex items-center gap-3 w-full px-4 py-3 text-left transition-colors first:rounded-t-xl last:rounded-b-xl"
                       >
-                        <div className="w-8 h-8 rounded-full bg-pineapple/20 flex items-center justify-center text-pineapple-dark text-sm font-medium">
+                        <div className="w-8 h-8 rounded-full bg-salmon/20 flex items-center justify-center text-salmon-dark text-sm font-medium">
                           {getInitials(user.name)}
                         </div>
                         <div>
@@ -303,7 +303,7 @@ export default function SharePropertyClient() {
               disabled={isSharing}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="btn btn-primary text-sm sm:text-base py-2 px-3 sm:px-4"
+              className="btn btn-salmon text-sm sm:text-base py-2 px-3 sm:px-4"
             >
               {isSharing ? (
                 <motion.div
@@ -378,9 +378,9 @@ function ShareRow({
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-4">
       <div className="flex items-center gap-3 min-w-0">
         <motion.div
-          className="w-10 h-10 rounded-full bg-gradient-to-br from-pineapple/30 to-pineapple/10
-                     backdrop-blur-sm border border-pineapple/20
-                     flex items-center justify-center text-pineapple-dark font-medium shrink-0"
+          className="w-10 h-10 rounded-full bg-gradient-to-br from-salmon/30 to-salmon/10
+                     backdrop-blur-sm border border-salmon/20
+                     flex items-center justify-center text-salmon-dark font-medium shrink-0"
           whileHover={{ scale: 1.05 }}
         >
           {getInitials(share.sharedWithUser.name)}
@@ -402,7 +402,7 @@ function ShareRow({
           <select
             value={share.permission}
             onChange={(e) => onUpdatePermission(e.target.value as Permission)}
-            className="text-xs sm:text-sm bg-white/50 backdrop-blur-sm border border-white/40 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-pineapple/50"
+            className="text-xs sm:text-sm bg-white/50 backdrop-blur-sm border border-white/40 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-salmon/50"
           >
             <option value={Permission.VIEW}>View</option>
             <option value={Permission.EDIT}>Edit</option>

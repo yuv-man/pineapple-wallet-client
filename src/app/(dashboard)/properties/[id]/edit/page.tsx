@@ -74,7 +74,7 @@ export default function EditPropertyPage() {
   if (isFetching) {
     return (
       <div className="flex items-center justify-center h-[50vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-pineapple" />
+        <Loader2 className="h-8 w-8 animate-spin text-salmon" />
       </div>
     );
   }
@@ -154,7 +154,7 @@ export default function EditPropertyPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="btn btn-primary"
+              className="btn btn-salmon"
             >
               {isLoading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
