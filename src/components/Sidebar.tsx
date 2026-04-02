@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { useRouter } from "next/navigation";
-import { authApi } from "@/lib/api";
+import { authApi, sharingApi, propertySharingApi } from "@/lib/api";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -33,6 +33,28 @@ export function Sidebar() {
   const router = useRouter();
   const { user, logout, refreshToken } = useAuthStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [pendingInvitationsCount, setPendingInvitationsCount] = useState(0);
+
+  // Fetch pending invitations count
+  useEffect(() => {
+    const fetchPendingCount = async () => {
+      try {
+        const [portfolioRes, propertyRes] = await Promise.all([
+          sharingApi.getInvitations().catch(() => ({ data: [] })),
+          propertySharingApi.getPropertyInvitations().catch(() => ({ data: [] })),
+        ]);
+        const total = (portfolioRes.data?.length || 0) + (propertyRes.data?.length || 0);
+        setPendingInvitationsCount(total);
+      } catch (error) {
+        console.error("Failed to fetch invitations count:", error);
+      }
+    };
+
+    fetchPendingCount();
+    // Refetch every 30 seconds to keep badge updated
+    const interval = setInterval(fetchPendingCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -101,8 +123,22 @@ export function Sidebar() {
                 <motion.div
                   whileHover={{ scale: 1.1, rotate: 5 }}
                   transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                  className="relative"
                 >
                   <item.icon className="h-5 w-5" />
+                  {/* Notification badge for Invitations */}
+                  {item.name === "Invitations" && pendingInvitationsCount > 0 && (
+                    <motion.span
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1
+                                 bg-red-500 text-white text-[10px] font-bold
+                                 rounded-full flex items-center justify-center
+                                 shadow-sm"
+                    >
+                      {pendingInvitationsCount > 9 ? "9+" : pendingInvitationsCount}
+                    </motion.span>
+                  )}
                 </motion.div>
                 {item.name}
                 {isActive && (
@@ -187,6 +223,19 @@ export function Sidebar() {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
       >
+        {/* Notification badge on hamburger menu */}
+        {pendingInvitationsCount > 0 && !isMobileMenuOpen && (
+          <motion.span
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1
+                       bg-red-500 text-white text-[10px] font-bold
+                       rounded-full flex items-center justify-center
+                       shadow-sm"
+          >
+            {pendingInvitationsCount > 9 ? "9+" : pendingInvitationsCount}
+          </motion.span>
+        )}
         <AnimatePresence mode="wait">
           {isMobileMenuOpen ? (
             <motion.div
