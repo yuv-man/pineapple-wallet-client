@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { currencyApi } from '@/lib/api';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { currencyApi } from "@/lib/api";
 
 interface ExchangeRates {
   base: string;
@@ -38,7 +38,7 @@ export const useCurrencyStore = create<CurrencyState>()(
         return now - lastFetch > ONE_DAY_MS;
       },
 
-      fetchRates: async (baseCurrency = 'USD') => {
+      fetchRates: async (baseCurrency = "USD") => {
         set({ isLoading: true, error: null });
 
         try {
@@ -53,7 +53,7 @@ export const useCurrencyStore = create<CurrencyState>()(
           });
         } catch (error: any) {
           set({
-            error: error.message || 'Failed to fetch exchange rates',
+            error: error.message || "Failed to fetch exchange rates",
             isLoading: false,
           });
         }
@@ -68,7 +68,16 @@ export const useCurrencyStore = create<CurrencyState>()(
 
         if (fromU === toU) return amount;
 
-        const cryptos = ['BTC', 'ETH', 'USDT', 'BNB', 'XRP', 'ADA', 'SOL', 'DOGE'];
+        const cryptos = [
+          "BTC",
+          "ETH",
+          "USDT",
+          "BNB",
+          "XRP",
+          "ADA",
+          "SOL",
+          "DOGE",
+        ];
         const fromRate = rates.rates[fromU];
         const toRate = rates.rates[toU];
 
@@ -89,7 +98,7 @@ export const useCurrencyStore = create<CurrencyState>()(
         return (amount * toRate) / fromRate;
       },
 
-      getCryptoPrice: (symbol: string, fiatCurrency = 'USD') => {
+      getCryptoPrice: (symbol: string, fiatCurrency = "USD") => {
         const { rates } = get();
         if (!rates || !rates.rates) return 0;
 
@@ -114,11 +123,11 @@ export const useCurrencyStore = create<CurrencyState>()(
       },
     }),
     {
-      name: 'pineapple-currency',
+      name: "pineapple-currency",
       partialize: (state) => ({
         rates: state.rates,
         lastFetchDate: state.lastFetchDate,
       }),
-    }
-  )
+    },
+  ),
 );
