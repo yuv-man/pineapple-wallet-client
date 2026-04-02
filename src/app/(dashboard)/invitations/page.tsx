@@ -354,7 +354,7 @@ function PropertyInvitationCard({
             disabled={isResponding}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="btn btn-primary text-sm py-2 px-3 sm:px-4"
+            className="btn btn-salmon text-sm py-2 px-3 sm:px-4"
           >
             {isResponding ? (
               <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
