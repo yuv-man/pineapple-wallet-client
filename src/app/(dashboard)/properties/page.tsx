@@ -1,12 +1,13 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { propertiesApi } from '@/lib/api';
-import { useAuthStore } from '@/store/auth';
-import { Property } from '@/types';
-import { formatCurrency, formatDate, getInitials } from '@/lib/utils';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { motion } from "framer-motion";
+import { propertiesApi } from "@/lib/api";
+import { useAuthStore } from "@/store/auth";
+import { Property } from "@/types";
+import { formatCurrency, formatDate, getInitials } from "@/lib/utils";
 import {
   Building2,
   PlusCircle,
@@ -17,13 +18,13 @@ import {
   TrendingUp,
   TrendingDown,
   MapPin,
-} from 'lucide-react';
+} from "lucide-react";
 import {
   PageTransition,
   AnimatedList,
   AnimatedListItem,
   Floating,
-} from '@/components/animations';
+} from "@/components/animations";
 
 export default function PropertiesPage() {
   const [properties, setProperties] = useState<{
@@ -33,7 +34,7 @@ export default function PropertiesPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   const { user } = useAuthStore();
-  const displayCurrency = user?.displayCurrency || 'USD';
+  const displayCurrency = user?.displayCurrency || "USD";
 
   useEffect(() => {
     const fetchProperties = async () => {
@@ -41,7 +42,7 @@ export default function PropertiesPage() {
         const response = await propertiesApi.getAll();
         setProperties(response.data);
       } catch (error) {
-        console.error('Failed to fetch properties:', error);
+        console.error("Failed to fetch properties:", error);
       } finally {
         setIsLoading(false);
       }
@@ -55,7 +56,7 @@ export default function PropertiesPage() {
       <div className="flex items-center justify-center h-[50vh]">
         <motion.div
           animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
         >
           <Loader2 className="h-8 w-8 text-salmon" />
         </motion.div>
@@ -71,10 +72,20 @@ export default function PropertiesPage() {
         className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8"
       >
         <div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+          <div className="flex justify-center">
+            <Image
+              src="/properties.webp"
+              alt="Properties"
+              width={200}
+              height={200}
+            />
+          </div>
+          <h1 className="text-2xl text-center font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
             My Properties
           </h1>
-          <p className="text-gray-600">Track expenses and profits for your properties</p>
+          <p className="text-gray-600">
+            Track expenses and profits for your properties
+          </p>
         </div>
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Link href="/properties/new" className="btn btn-salmon">
@@ -99,7 +110,8 @@ export default function PropertiesPage() {
             No properties yet
           </h3>
           <p className="text-gray-500 mb-8 max-w-sm mx-auto">
-            Add your first property to start tracking rental income, expenses, and profit margins
+            Add your first property to start tracking rental income, expenses,
+            and profit margins
           </p>
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Link href="/properties/new" className="btn btn-salmon inline-flex">
@@ -146,7 +158,7 @@ function PropertyCard({
   displayCurrency: string;
 }) {
   const sharedCount = property.shares?.filter(
-    (s) => s.status === 'ACCEPTED'
+    (s) => s.status === "ACCEPTED",
   ).length;
 
   const netBalance = property.netBalance || 0;
@@ -155,7 +167,7 @@ function PropertyCard({
   return (
     <motion.div
       whileHover={{ y: -4, scale: 1.01 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
     >
       <Link
         href={`/properties/${property.id}`}
@@ -164,7 +176,11 @@ function PropertyCard({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-4 min-w-0">
             <motion.div
-              className={isOwner ? "icon-container-salmon" : "icon-container bg-blue-50/80 border-blue-100/50"}
+              className={
+                isOwner
+                  ? "icon-container-salmon"
+                  : "icon-container bg-blue-50/80 border-blue-100/50"
+              }
               whileHover={{ rotate: 5, scale: 1.05 }}
             >
               {isOwner ? (
@@ -189,7 +205,9 @@ function PropertyCard({
                     <div className="w-4 h-4 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-[10px] font-medium">
                       {getInitials(property.user.name)}
                     </div>
-                    <span className="hidden sm:inline">{property.user.name}</span>
+                    <span className="hidden sm:inline">
+                      {property.user.name}
+                    </span>
                   </span>
                 )}
                 <span className="flex items-center gap-1.5">
@@ -199,7 +217,9 @@ function PropertyCard({
                 {isOwner && sharedCount > 0 && (
                   <span className="flex items-center gap-1">
                     <Users className="h-4 w-4" />
-                    <span className="hidden sm:inline">Shared with {sharedCount}</span>
+                    <span className="hidden sm:inline">
+                      Shared with {sharedCount}
+                    </span>
                   </span>
                 )}
                 <span className="hidden sm:inline text-gray-400">
@@ -221,18 +241,17 @@ function PropertyCard({
                 ) : (
                   <TrendingDown className="h-5 w-5 text-red-500" />
                 )}
-                <span className={`text-2xl font-bold ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                <span
+                  className={`text-2xl font-bold ${isPositive ? "text-green-600" : "text-red-600"}`}
+                >
                   {formatCurrency(Math.abs(netBalance), displayCurrency)}
                 </span>
               </motion.div>
               <p className="text-sm text-gray-500">
-                {isPositive ? 'Net Profit' : 'Net Loss'}
+                {isPositive ? "Net Profit" : "Net Loss"}
               </p>
             </div>
-            <motion.div
-              className="text-gray-400"
-              whileHover={{ x: 4 }}
-            >
+            <motion.div className="text-gray-400" whileHover={{ x: 4 }}>
               <ArrowRight className="h-5 w-5" />
             </motion.div>
           </div>

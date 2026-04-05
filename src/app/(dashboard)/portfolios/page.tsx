@@ -1,23 +1,40 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { portfoliosApi } from '@/lib/api';
-import { useAuthStore } from '@/store/auth';
-import { useCurrencyStore } from '@/store/currency';
-import { Portfolio, AssetType } from '@/types';
-import { formatCurrency, formatDate } from '@/lib/utils';
-import { Wallet, PlusCircle, Loader2, Users, ArrowRight, Share2 } from 'lucide-react';
-import { getInitials } from '@/lib/utils';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { motion } from "framer-motion";
+import { portfoliosApi } from "@/lib/api";
+import { useAuthStore } from "@/store/auth";
+import { useCurrencyStore } from "@/store/currency";
+import { Portfolio, AssetType } from "@/types";
+import { formatCurrency, formatDate } from "@/lib/utils";
+import {
+  Wallet,
+  PlusCircle,
+  Loader2,
+  Users,
+  ArrowRight,
+  Share2,
+} from "lucide-react";
+import { getInitials } from "@/lib/utils";
 import {
   PageTransition,
   AnimatedList,
   AnimatedListItem,
   Floating,
-} from '@/components/animations';
+} from "@/components/animations";
 
-const CRYPTO_SYMBOLS = ['BTC', 'ETH', 'USDT', 'BNB', 'XRP', 'ADA', 'SOL', 'DOGE'];
+const CRYPTO_SYMBOLS = [
+  "BTC",
+  "ETH",
+  "USDT",
+  "BNB",
+  "XRP",
+  "ADA",
+  "SOL",
+  "DOGE",
+];
 
 export default function PortfoliosPage() {
   const [portfolios, setPortfolios] = useState<{
@@ -28,7 +45,7 @@ export default function PortfoliosPage() {
 
   const { user } = useAuthStore();
   const { convert, getCryptoPrice } = useCurrencyStore();
-  const displayCurrency = user?.displayCurrency || 'USD';
+  const displayCurrency = user?.displayCurrency || "USD";
 
   useEffect(() => {
     const fetchPortfolios = async () => {
@@ -36,7 +53,7 @@ export default function PortfoliosPage() {
         const response = await portfoliosApi.getAll();
         setPortfolios(response.data);
       } catch (error) {
-        console.error('Failed to fetch portfolios:', error);
+        console.error("Failed to fetch portfolios:", error);
       } finally {
         setIsLoading(false);
       }
@@ -50,7 +67,7 @@ export default function PortfoliosPage() {
       <div className="flex items-center justify-center h-[50vh]">
         <motion.div
           animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
         >
           <Loader2 className="h-8 w-8 text-pineapple" />
         </motion.div>
@@ -63,13 +80,23 @@ export default function PortfoliosPage() {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8"
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4"
       >
         <div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+          <div className="flex justify-center">
+            <Image
+              src="/portfolios.webp"
+              alt="Portfolios"
+              width={200}
+              height={200}
+            />
+          </div>
+          <h1 className="text-2xl font-bold bg-gradient-to-r text-center md:text-left from-gray-900 to-gray-700 bg-clip-text text-transparent">
             My Portfolios
           </h1>
-          <p className="text-gray-600">Manage your investment portfolios</p>
+          <p className="text-gray-600 text-center md:text-left">
+            Manage your investment portfolios
+          </p>
         </div>
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Link href="/portfolios/new" className="btn btn-primary">
@@ -94,10 +121,14 @@ export default function PortfoliosPage() {
             No portfolios yet
           </h3>
           <p className="text-gray-500 mb-8 max-w-sm mx-auto">
-            Create your first portfolio to start tracking your assets and watch your wealth grow
+            Create your first portfolio to start tracking your assets and watch
+            your wealth grow
           </p>
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-            <Link href="/portfolios/new" className="btn btn-primary inline-flex">
+            <Link
+              href="/portfolios/new"
+              className="btn btn-primary inline-flex"
+            >
               <PlusCircle className="h-5 w-5 mr-2" />
               Create Portfolio
             </Link>
@@ -152,7 +183,7 @@ function PortfolioCard({
   index?: number;
 }) {
   const sharedCount = portfolio.shares?.filter(
-    (s) => s.status === 'ACCEPTED'
+    (s) => s.status === "ACCEPTED",
   ).length;
 
   const calculateTotalInDisplayCurrency = () => {
@@ -167,10 +198,10 @@ function PortfolioCard({
         const cryptoPrice = getCryptoPrice(asset.currency);
         if (cryptoPrice) {
           const valueInUSD = value * cryptoPrice;
-          if (displayCurrency === 'USD') {
+          if (displayCurrency === "USD") {
             return total + valueInUSD;
           }
-          return total + convert(valueInUSD, 'USD', displayCurrency);
+          return total + convert(valueInUSD, "USD", displayCurrency);
         }
         return total;
       }
@@ -187,7 +218,7 @@ function PortfolioCard({
   return (
     <motion.div
       whileHover={{ y: -4, scale: 1.01 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
     >
       <Link
         href={`/portfolios/${portfolio.id}`}
@@ -196,7 +227,11 @@ function PortfolioCard({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-4 min-w-0">
             <motion.div
-              className={isOwner ? "icon-container-primary" : "icon-container bg-blue-50/80 border-blue-100/50"}
+              className={
+                isOwner
+                  ? "icon-container-primary"
+                  : "icon-container bg-blue-50/80 border-blue-100/50"
+              }
               whileHover={{ rotate: 5, scale: 1.05 }}
             >
               {isOwner ? (
@@ -215,7 +250,9 @@ function PortfolioCard({
                     <div className="w-4 h-4 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-[10px] font-medium">
                       {getInitials(portfolio.user.name)}
                     </div>
-                    <span className="hidden sm:inline">{portfolio.user.name}</span>
+                    <span className="hidden sm:inline">
+                      {portfolio.user.name}
+                    </span>
                   </span>
                 )}
                 <span className="flex items-center gap-1.5">
@@ -225,7 +262,9 @@ function PortfolioCard({
                 {isOwner && sharedCount > 0 && (
                   <span className="flex items-center gap-1">
                     <Users className="h-4 w-4" />
-                    <span className="hidden sm:inline">Shared with {sharedCount}</span>
+                    <span className="hidden sm:inline">
+                      Shared with {sharedCount}
+                    </span>
                   </span>
                 )}
                 <span className="hidden sm:inline text-gray-400">
@@ -244,12 +283,11 @@ function PortfolioCard({
               >
                 {formatCurrency(totalInDisplayCurrency, displayCurrency)}
               </motion.p>
-              <p className="text-sm text-gray-500">Total in {displayCurrency}</p>
+              <p className="text-sm text-gray-500">
+                Total in {displayCurrency}
+              </p>
             </div>
-            <motion.div
-              className="text-gray-400"
-              whileHover={{ x: 4 }}
-            >
+            <motion.div className="text-gray-400" whileHover={{ x: 4 }}>
               <ArrowRight className="h-5 w-5" />
             </motion.div>
           </div>
