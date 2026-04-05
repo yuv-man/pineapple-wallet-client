@@ -1,15 +1,16 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { authApi, usersApi } from '@/lib/api';
-import { useAuthStore } from '@/store/auth';
-import { getApiUrl } from '@/lib/utils';
-import { Loader2 } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { authApi, usersApi } from "@/lib/api";
+import { useAuthStore } from "@/store/auth";
+import { getApiUrl } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
 import {
   isNativePlatform,
   getMobileRedirectUri,
@@ -17,11 +18,11 @@ import {
   closeBrowser,
   setupDeepLinkListener,
   parseAuthCallbackUrl,
-} from '@/lib/capacitor';
+} from "@/lib/capacitor";
 
 const loginSchema = z.object({
-  email: z.string().email('Please enter a valid email'),
-  password: z.string().min(1, 'Password is required'),
+  email: z.string().email("Please enter a valid email"),
+  password: z.string().min(1, "Password is required"),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
@@ -56,14 +57,14 @@ export default function LoginPage() {
           useAuthStore.getState().setTokens(accessToken, refreshToken);
           const response = await usersApi.getMe();
           login(response.data, accessToken, refreshToken);
-          router.push('/dashboard');
+          router.push("/dashboard");
         } catch {
-          setError('Authentication failed. Please try again.');
+          setError("Authentication failed. Please try again.");
           setIsOAuthLoading(false);
         }
       } else {
         await closeBrowser();
-        setError('Authentication failed. Missing tokens.');
+        setError("Authentication failed. Missing tokens.");
       }
     });
 
@@ -78,15 +79,15 @@ export default function LoginPage() {
       const response = await authApi.login(data);
       const { user, accessToken, refreshToken } = response.data;
       login(user, accessToken, refreshToken);
-      router.push('/dashboard');
+      router.push("/dashboard");
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Invalid email or password');
+      setError(err.response?.data?.message || "Invalid email or password");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleOAuthLogin = async (provider: 'google' | 'github') => {
+  const handleOAuthLogin = async (provider: "google" | "github") => {
     const apiUrl = getApiUrl();
 
     if (isNativePlatform()) {
@@ -104,11 +105,11 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2 mb-6">
+          <Link href="/" className="inline-flex items-center gap-2">
             <img
               src="/favicon.ico"
               alt="Pineapple Wallet"
-              className="w-12 h-12 object-contain"
+              className="w-20 h-20 object-contain"
             />
           </Link>
           <h1 className="text-3xl font-bold text-gray-900">Welcome back</h1>
@@ -132,10 +133,12 @@ export default function LoginPage() {
                 type="email"
                 className="input mt-1"
                 placeholder="you@example.com"
-                {...register('email')}
+                {...register("email")}
               />
               {errors.email && (
-                <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.email.message}
+                </p>
               )}
             </div>
 
@@ -148,7 +151,7 @@ export default function LoginPage() {
                 type="password"
                 className="input mt-1"
                 placeholder="••••••••"
-                {...register('password')}
+                {...register("password")}
               />
               {errors.password && (
                 <p className="text-red-500 text-sm mt-1">
@@ -165,7 +168,7 @@ export default function LoginPage() {
               {isLoading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
-                'Sign In'
+                "Sign In"
               )}
             </button>
           </form>
@@ -175,7 +178,9 @@ export default function LoginPage() {
               <div className="w-full border-t border-gray-200" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or continue with</span>
+              <span className="px-2 bg-white text-gray-500">
+                Or continue with
+              </span>
             </div>
           </div>
 
@@ -188,7 +193,7 @@ export default function LoginPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
                 type="button"
-                onClick={() => handleOAuthLogin('google')}
+                onClick={() => handleOAuthLogin("google")}
                 className="btn btn-outline flex items-center justify-center"
               >
                 <svg className="w-5 h-5 mr-2 flex-shrink-0" viewBox="0 0 24 24">
@@ -213,10 +218,14 @@ export default function LoginPage() {
               </button>
               <button
                 type="button"
-                onClick={() => handleOAuthLogin('github')}
+                onClick={() => handleOAuthLogin("github")}
                 className="btn btn-outline flex items-center justify-center"
               >
-                <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="w-5 h-5 mr-2 flex-shrink-0"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path
                     fillRule="evenodd"
                     clipRule="evenodd"
@@ -229,11 +238,22 @@ export default function LoginPage() {
           )}
 
           <p className="text-center text-sm text-gray-600 mt-6">
-            Don&apos;t have an account?{' '}
-            <Link href="/register" className="text-pineapple hover:underline font-medium">
+            Don&apos;t have an account?{" "}
+            <Link
+              href="/register"
+              className="text-pineapple hover:underline font-medium"
+            >
               Sign up
             </Link>
           </p>
+        </div>
+        <div className="mt-4 flex justify-center">
+          <Image
+            src="/investment.webp"
+            alt="Illustration of growing investments and savings"
+            width={250}
+            height={250}
+          />
         </div>
       </div>
     </div>

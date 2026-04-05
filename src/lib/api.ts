@@ -151,13 +151,35 @@ export const currencyApi = {
 export const propertiesApi = {
   getAll: () => api.get("/properties"),
   getOne: (id: string) => api.get(`/properties/${id}`),
-  create: (data: { name: string; address?: string; description?: string }) =>
-    api.post("/properties", data),
+  create: (data: {
+    name: string;
+    address?: string;
+    description?: string;
+    propertyType?: string;
+    size?: number;
+    sizeUnit?: string;
+    country?: string;
+    city?: string;
+  }) => api.post("/properties", data),
   update: (
     id: string,
-    data: { name?: string; address?: string; description?: string }
+    data: {
+      name?: string;
+      address?: string;
+      description?: string;
+      propertyType?: string;
+      size?: number;
+      sizeUnit?: string;
+      country?: string;
+      city?: string;
+    }
   ) => api.patch(`/properties/${id}`, data),
   delete: (id: string) => api.delete(`/properties/${id}`),
+  // Valuation endpoints
+  getValuation: (id: string) => api.get(`/properties/${id}/valuation`),
+  refreshValuation: (id: string) =>
+    api.post(`/properties/${id}/valuation/refresh`),
+  getAvailableCountries: () => api.get("/properties/valuation/countries"),
 };
 
 // Property Transactions API

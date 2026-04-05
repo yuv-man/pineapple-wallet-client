@@ -41,9 +41,12 @@ export function Sidebar() {
       try {
         const [portfolioRes, propertyRes] = await Promise.all([
           sharingApi.getInvitations().catch(() => ({ data: [] })),
-          propertySharingApi.getPropertyInvitations().catch(() => ({ data: [] })),
+          propertySharingApi
+            .getPropertyInvitations()
+            .catch(() => ({ data: [] })),
         ]);
-        const total = (portfolioRes.data?.length || 0) + (propertyRes.data?.length || 0);
+        const total =
+          (portfolioRes.data?.length || 0) + (propertyRes.data?.length || 0);
         setPendingInvitationsCount(total);
       } catch (error) {
         console.error("Failed to fetch invitations count:", error);
@@ -127,18 +130,21 @@ export function Sidebar() {
                 >
                   <item.icon className="h-5 w-5" />
                   {/* Notification badge for Invitations */}
-                  {item.name === "Invitations" && pendingInvitationsCount > 0 && (
-                    <motion.span
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1
+                  {item.name === "Invitations" &&
+                    pendingInvitationsCount > 0 && (
+                      <motion.span
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1
                                  bg-red-500 text-white text-[10px] font-bold
                                  rounded-full flex items-center justify-center
                                  shadow-sm"
-                    >
-                      {pendingInvitationsCount > 9 ? "9+" : pendingInvitationsCount}
-                    </motion.span>
-                  )}
+                      >
+                        {pendingInvitationsCount > 9
+                          ? "9+"
+                          : pendingInvitationsCount}
+                      </motion.span>
+                    )}
                 </motion.div>
                 {item.name}
                 {isActive && (
@@ -155,7 +161,7 @@ export function Sidebar() {
       </nav>
 
       {/* User section */}
-      <div className="border-t border-white/30 p-4">
+      <div className="border-t border-white/30 p-4 mb-20">
         <div className="flex items-center gap-3 mb-3">
           <motion.div
             className="w-10 h-10 rounded-xl bg-gradient-to-br from-pineapple/30 to-pineapple/10

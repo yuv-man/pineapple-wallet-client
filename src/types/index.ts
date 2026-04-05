@@ -113,6 +113,32 @@ export enum TransactionType {
   PROFIT = 'PROFIT',
 }
 
+export enum PropertyType {
+  APARTMENT = 'APARTMENT',
+  HOUSE = 'HOUSE',
+  LAND = 'LAND',
+  COMMERCIAL = 'COMMERCIAL',
+  OTHER = 'OTHER',
+}
+
+export enum SizeUnit {
+  SQM = 'SQM',
+  SQFT = 'SQFT',
+}
+
+export const PROPERTY_TYPE_LABELS: Record<PropertyType, string> = {
+  [PropertyType.APARTMENT]: 'Apartment',
+  [PropertyType.HOUSE]: 'House',
+  [PropertyType.LAND]: 'Land',
+  [PropertyType.COMMERCIAL]: 'Commercial',
+  [PropertyType.OTHER]: 'Other',
+};
+
+export const SIZE_UNIT_LABELS: Record<SizeUnit, string> = {
+  [SizeUnit.SQM]: 'sqm',
+  [SizeUnit.SQFT]: 'sqft',
+};
+
 export enum CategoryType {
   EXPENSE = 'EXPENSE',
   PROFIT = 'PROFIT',
@@ -167,6 +193,29 @@ export interface Property {
   netBalance: number;
   createdAt: string;
   updatedAt: string;
+  // Valuation fields
+  propertyType?: PropertyType;
+  size?: number;
+  sizeUnit?: SizeUnit;
+  country?: string;
+  city?: string;
+  estimatedValue?: number;
+  estimatedValueCurrency?: string;
+  estimatedValueDate?: string;
+  valuationSource?: 'gemini' | 'zillow' | 'fallback';
+}
+
+export interface ValuationResult {
+  estimatedValue: number;
+  currency: string;
+  source: 'gemini' | 'zillow' | 'fallback';
+  lastUpdated: string;
+  confidence: 'high' | 'medium' | 'low';
+}
+
+export interface Country {
+  code: string;
+  name: string;
 }
 
 export interface PropertyInvitation {

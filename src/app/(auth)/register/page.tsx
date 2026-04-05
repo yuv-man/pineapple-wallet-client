@@ -1,23 +1,23 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { authApi } from '@/lib/api';
-import { useAuthStore } from '@/store/auth';
-import { getApiUrl } from '@/lib/utils';
-import { Loader2 } from 'lucide-react';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { authApi } from "@/lib/api";
+import { useAuthStore } from "@/store/auth";
+import { getApiUrl } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
 
 const registerSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Please enter a valid email'),
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Please enter a valid email"),
   password: z
     .string()
-    .min(8, 'Password must be at least 8 characters')
-    .max(32, 'Password must be less than 32 characters'),
+    .min(8, "Password must be at least 8 characters")
+    .max(32, "Password must be less than 32 characters"),
 });
 
 type RegisterForm = z.infer<typeof registerSchema>;
@@ -44,17 +44,18 @@ export default function RegisterPage() {
       const response = await authApi.register(data);
       const { user, accessToken, refreshToken } = response.data;
       login(user, accessToken, refreshToken);
-      router.push('/dashboard');
+      router.push("/dashboard");
     } catch (err: any) {
       setError(
-        err.response?.data?.message || 'Something went wrong. Please try again.'
+        err.response?.data?.message ||
+          "Something went wrong. Please try again.",
       );
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleOAuthLogin = (provider: 'google' | 'github') => {
+  const handleOAuthLogin = (provider: "google" | "github") => {
     const apiUrl = getApiUrl();
     window.location.href = `${apiUrl}/auth/${provider}`;
   };
@@ -67,10 +68,12 @@ export default function RegisterPage() {
             <img
               src="/favicon.ico"
               alt="Pineapple Wallet"
-              className="w-12 h-12 object-contain"
+              className="w-20 h-20 object-contain"
             />
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">Create an account</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Create an account
+          </h1>
           <p className="text-gray-600 mt-2">Start managing your wealth today</p>
         </div>
 
@@ -91,10 +94,12 @@ export default function RegisterPage() {
                 type="text"
                 className="input mt-1"
                 placeholder="John Doe"
-                {...register('name')}
+                {...register("name")}
               />
               {errors.name && (
-                <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.name.message}
+                </p>
               )}
             </div>
 
@@ -107,10 +112,12 @@ export default function RegisterPage() {
                 type="email"
                 className="input mt-1"
                 placeholder="you@example.com"
-                {...register('email')}
+                {...register("email")}
               />
               {errors.email && (
-                <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.email.message}
+                </p>
               )}
             </div>
 
@@ -123,7 +130,7 @@ export default function RegisterPage() {
                 type="password"
                 className="input mt-1"
                 placeholder="••••••••"
-                {...register('password')}
+                {...register("password")}
               />
               {errors.password && (
                 <p className="text-red-500 text-sm mt-1">
@@ -143,7 +150,7 @@ export default function RegisterPage() {
               {isLoading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
-                'Create Account'
+                "Create Account"
               )}
             </button>
           </form>
@@ -153,14 +160,16 @@ export default function RegisterPage() {
               <div className="w-full border-t border-gray-200" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or continue with</span>
+              <span className="px-2 bg-white text-gray-500">
+                Or continue with
+              </span>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
               type="button"
-              onClick={() => handleOAuthLogin('google')}
+              onClick={() => handleOAuthLogin("google")}
               className="btn btn-outline flex items-center justify-center"
             >
               <svg className="w-5 h-5 mr-2 flex-shrink-0" viewBox="0 0 24 24">
@@ -185,10 +194,14 @@ export default function RegisterPage() {
             </button>
             <button
               type="button"
-              onClick={() => handleOAuthLogin('github')}
+              onClick={() => handleOAuthLogin("github")}
               className="btn btn-outline flex items-center justify-center"
             >
-              <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-5 h-5 mr-2 flex-shrink-0"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   fillRule="evenodd"
                   clipRule="evenodd"
@@ -200,8 +213,11 @@ export default function RegisterPage() {
           </div>
 
           <p className="text-center text-sm text-gray-600 mt-6">
-            Already have an account?{' '}
-            <Link href="/login" className="text-pineapple hover:underline font-medium">
+            Already have an account?{" "}
+            <Link
+              href="/login"
+              className="text-pineapple hover:underline font-medium"
+            >
               Sign in
             </Link>
           </p>

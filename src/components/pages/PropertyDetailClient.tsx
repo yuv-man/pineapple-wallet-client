@@ -10,6 +10,9 @@ import {
   PropertyTransaction,
   TransactionType,
   Permission,
+  ValuationResult,
+  PROPERTY_TYPE_LABELS,
+  SIZE_UNIT_LABELS,
 } from "@/types";
 import { cn, formatCurrency, formatDate } from "@/lib/utils";
 import {
@@ -36,6 +39,11 @@ import {
   Minus,
   Eye,
   X,
+  RefreshCw,
+  TrendingUp as ChartIcon,
+  Info,
+  Ruler,
+  Globe,
 } from "lucide-react";
 import {
   PageTransition,
@@ -63,6 +71,9 @@ export function PropertyDetailClient() {
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [valuation, setValuation] = useState<ValuationResult | null>(null);
+  const [isLoadingValuation, setIsLoadingValuation] = useState(false);
+  const [valuationError, setValuationError] = useState<string | null>(null);
 
   const propertyId = params.id as string;
 
@@ -81,6 +92,43 @@ export function PropertyDetailClient() {
 
     fetchProperty();
   }, [propertyId, router]);
+
+  // Fetch valuation when property is loaded and has valuation-related data
+  useEffect(() => {
+    const fetchValuation = async () => {
+      if (!property) return;
+      // Only fetch if property has size or country (basic valuation requirements)
+      if (!property.size && !property.country) return;
+
+      setIsLoadingValuation(true);
+      setValuationError(null);
+      try {
+        const response = await propertiesApi.getValuation(propertyId);
+        setValuation(response.data);
+      } catch (error: any) {
+        console.error("Failed to fetch valuation:", error);
+        setValuationError(error.response?.data?.message || "Failed to get valuation");
+      } finally {
+        setIsLoadingValuation(false);
+      }
+    };
+
+    fetchValuation();
+  }, [property?.id, property?.size, property?.country, propertyId]);
+
+  const handleRefreshValuation = async () => {
+    setIsLoadingValuation(true);
+    setValuationError(null);
+    try {
+      const response = await propertiesApi.refreshValuation(propertyId);
+      setValuation(response.data);
+    } catch (error: any) {
+      console.error("Failed to refresh valuation:", error);
+      setValuationError(error.response?.data?.message || "Failed to refresh valuation");
+    } finally {
+      setIsLoadingValuation(false);
+    }
+  };
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -202,6 +250,99 @@ export function PropertyDetailClient() {
               </div>
             </div>
           </div>
+
+          {/* Property Details & Valuation */}
+          {(property.propertyType || property.size || property.country || valuation) && (
+            <div className="mt-6 pt-6 border-t border-white/40">
+              <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+                {/* Property Details */}
+                {(property.propertyType || property.size || property.country) && (
+                  <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
+                    {property.propertyType && (
+                      <span className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100/60 rounded-lg">
+                        <Building2 className="h-4 w-4 text-gray-500" />
+                        {PROPERTY_TYPE_LABELS[property.propertyType]}
+                      </span>
+                    )}
+                    {property.size && property.sizeUnit && (
+                      <span className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100/60 rounded-lg">
+                        <Ruler className="h-4 w-4 text-gray-500" />
+                        {property.size} {SIZE_UNIT_LABELS[property.sizeUnit]}
+                      </span>
+                    )}
+                    {(property.city || property.country) && (
+                      <span className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100/60 rounded-lg">
+                        <Globe className="h-4 w-4 text-gray-500" />
+                        {[property.city, property.country].filter(Boolean).join(", ")}
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* Valuation Section */}
+                {(valuation || isLoadingValuation || (property.size && property.country)) && (
+                  <div className="flex items-center gap-4">
+                    {isLoadingValuation ? (
+                      <div className="flex items-center gap-2 text-gray-500">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span className="text-sm">Calculating valuation...</span>
+                      </div>
+                    ) : valuation ? (
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <div className="flex items-center gap-2 justify-end">
+                            <ChartIcon className="h-4 w-4 text-salmon" />
+                            <span className="text-xs text-gray-500">Estimated Value</span>
+                          </div>
+                          <p className="text-xl font-bold text-gray-900">
+                            {formatCurrency(valuation.estimatedValue, valuation.currency)}
+                          </p>
+                          <div className="flex items-center gap-2 text-xs text-gray-400 justify-end mt-1">
+                            <span className={cn(
+                              "px-1.5 py-0.5 rounded",
+                              valuation.confidence === 'high' ? 'bg-green-100 text-green-700' :
+                              valuation.confidence === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                              'bg-gray-100 text-gray-600'
+                            )}>
+                              {valuation.confidence} confidence
+                            </span>
+                            <span>via {valuation.source}</span>
+                          </div>
+                        </div>
+                        {canEdit && (
+                          <motion.button
+                            onClick={handleRefreshValuation}
+                            disabled={isLoadingValuation}
+                            className="p-2 rounded-lg bg-white/60 hover:bg-white/80 border border-white/50 text-gray-600 hover:text-gray-900 transition-all"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            title="Refresh valuation"
+                          >
+                            <RefreshCw className={cn("h-4 w-4", isLoadingValuation && "animate-spin")} />
+                          </motion.button>
+                        )}
+                      </div>
+                    ) : valuationError ? (
+                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <Info className="h-4 w-4" />
+                        <span>Valuation unavailable</span>
+                      </div>
+                    ) : (property.size && property.country) ? (
+                      <motion.button
+                        onClick={handleRefreshValuation}
+                        className="flex items-center gap-2 text-sm text-salmon hover:text-salmon-dark transition-colors"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <ChartIcon className="h-4 w-4" />
+                        Get Valuation Estimate
+                      </motion.button>
+                    ) : null}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Actions */}
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-6 pt-6 border-t border-white/40">
