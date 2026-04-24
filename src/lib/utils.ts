@@ -59,6 +59,14 @@ export function getMode(): "dev" | "prod" {
  */
 export function isLocalFrontendHost(): boolean {
   if (typeof window === "undefined") return false;
+  // On native Capacitor (Android/iOS) the WebView always runs on "localhost"
+  // internally — but this is the bundled production app, not a dev machine.
+  // Return false so getApiUrl() uses the production backend URL.
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { Capacitor } = require("@capacitor/core") as typeof import("@capacitor/core");
+    if (Capacitor.isNativePlatform()) return false;
+  } catch {}
   const h = window.location.hostname;
   return (
     h === "localhost" ||
