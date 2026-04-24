@@ -20,7 +20,8 @@ export default function DashboardLayout({
         </div>
 
         <Sidebar />
-        <main className="lg:pl-64 pt-4 lg:pt-0 relative">
+        {/* pt-safe handles iOS status bar / notch on mobile; lg:pt-0 resets on desktop */}
+        <main className="lg:pl-64 pt-safe lg:pt-0 relative">
           <div className="p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8">{children}</div>
         </main>
         <BottomNav />

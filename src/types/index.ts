@@ -29,6 +29,8 @@ export interface Asset {
   currency: string;
   notes?: string;
   details?: Record<string, any>;
+  addedByUserId?: string;
+  addedBy?: { id: string; name: string; avatar?: string };
   createdAt: string;
   updatedAt: string;
   valueHistory?: AssetValueHistory[];
@@ -247,3 +249,56 @@ export const PROFIT_CATEGORY_ICONS: Record<string, string> = {
   Sale: 'DollarSign',
   'Other Income': 'Plus',
 };
+
+// ==================== LIABILITY TYPES ====================
+
+export enum LiabilityType {
+  CREDIT_CARD = 'CREDIT_CARD',
+  MORTGAGE = 'MORTGAGE',
+  STUDENT_LOAN = 'STUDENT_LOAN',
+  PERSONAL_LOAN = 'PERSONAL_LOAN',
+  AUTO_LOAN = 'AUTO_LOAN',
+  HOME_EQUITY_LOAN = 'HOME_EQUITY_LOAN',
+  MEDICAL_DEBT = 'MEDICAL_DEBT',
+  OTHER = 'OTHER',
+}
+
+export const LIABILITY_TYPE_LABELS: Record<LiabilityType, string> = {
+  [LiabilityType.CREDIT_CARD]: 'Credit Card',
+  [LiabilityType.MORTGAGE]: 'Mortgage',
+  [LiabilityType.STUDENT_LOAN]: 'Student Loan',
+  [LiabilityType.PERSONAL_LOAN]: 'Personal Loan',
+  [LiabilityType.AUTO_LOAN]: 'Auto Loan',
+  [LiabilityType.HOME_EQUITY_LOAN]: 'Home Equity Loan',
+  [LiabilityType.MEDICAL_DEBT]: 'Medical Debt',
+  [LiabilityType.OTHER]: 'Other',
+};
+
+export interface Liability {
+  id: string;
+  userId: string;
+  type: LiabilityType;
+  name: string;
+  balance: number;
+  currency: string;
+  interestRate?: number;
+  minimumPayment?: number;
+  dueDate?: string;
+  notes?: string;
+  details?: Record<string, any>;
+  createdAt: string;
+  updatedAt: string;
+  balanceHistory?: Array<{ id: string; balance: number; recordedAt: string }>;
+}
+
+export interface NetWorthDataPoint {
+  date: string;
+  totalAssets: number;
+  totalLiabilities: number;
+  netWorth: number;
+}
+
+export interface NetWorthHistory {
+  currency: string;
+  data: NetWorthDataPoint[];
+}

@@ -15,6 +15,7 @@ import {
   LogOut,
   Menu,
   X,
+  CreditCard,
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { useRouter } from "next/navigation";
@@ -24,6 +25,7 @@ const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Portfolios", href: "/portfolios", icon: Wallet },
   { name: "Properties", href: "/properties", icon: Building2 },
+  { name: "Liabilities", href: "/liabilities", icon: CreditCard },
   { name: "Shared With Me", href: "/shared", icon: Share2 },
   { name: "Invitations", href: "/invitations", icon: Bell },
 ];
@@ -221,7 +223,7 @@ export function Sidebar() {
       {/* Mobile menu button */}
       <motion.button
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        className="lg:hidden fixed top-4 right-4 z-50 p-2.5 rounded-xl
+        className="lg:hidden fixed top-[max(1rem,env(safe-area-inset-top))] right-4 z-50 p-2.5 rounded-xl
                    bg-white/70 backdrop-blur-xl border border-white/50
                    shadow-glass hover:shadow-glass-prominent
                    transition-all duration-300"

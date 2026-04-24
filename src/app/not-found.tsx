@@ -4,16 +4,29 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
+const DYNAMIC_ROUTE_PATTERNS = [
+  '/portfolios/',
+  '/assets/',
+  '/properties/',
+  '/liabilities/',
+  '/invitations/',
+  '/shared/',
+];
+
 export default function NotFound() {
   const router = useRouter();
 
   useEffect(() => {
-    // For static export with dynamic routes, attempt client-side navigation
-    // This handles cases where the page wasn't pre-generated
+    // For static export with dynamic routes, attempt client-side navigation.
+    // Capacitor serves index.html for unknown paths; Next.js router then takes
+    // over and renders the correct page component using useParams().
     const path = window.location.pathname;
 
-    // If we're on a dynamic route that should exist, try navigating to it
-    if (path.includes('/portfolios/') || path.includes('/assets/')) {
+    const isDynamic = DYNAMIC_ROUTE_PATTERNS.some((pattern) =>
+      path.includes(pattern)
+    );
+
+    if (isDynamic) {
       router.replace(path);
     }
   }, [router]);

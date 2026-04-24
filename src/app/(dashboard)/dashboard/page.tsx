@@ -20,6 +20,7 @@ import {
   ArrowRight,
   RefreshCw,
   Globe,
+  CreditCard,
 } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import {
@@ -28,6 +29,7 @@ import {
   AnimatedList,
   AnimatedListItem,
 } from "@/components/animations";
+import { NetWorthChart } from "@/components/NetWorthChart";
 
 const COLORS = ["#F7B500", "#10B981", "#3B82F6", "#8B5CF6", "#EC4899"];
 
@@ -52,6 +54,9 @@ const POPULAR_CURRENCIES = [
 
 interface NetWorthData {
   totalNetWorth: number;
+  totalAssets: number;
+  totalLiabilities: number;
+  liabilityCount: number;
   currency: string;
   portfolioCount: number;
   assetCount: number;
@@ -172,7 +177,7 @@ export default function DashboardPage() {
       </motion.div>
 
       {/* Stats Cards */}
-      <AnimatedList className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      <AnimatedList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
         {/* Net Worth Card - Highlighted */}
         <AnimatedListItem>
           <motion.div
@@ -187,7 +192,7 @@ export default function DashboardPage() {
                 <TrendingUp className="h-6 w-6 text-pineapple-dark" />
               </motion.div>
               <div>
-                <p className="text-sm text-gray-600">Total Net Worth</p>
+                <p className="text-sm text-gray-600">Net Worth</p>
                 <motion.p
                   className="text-2xl font-bold text-gray-900"
                   key={netWorthData?.totalNetWorth}
@@ -203,7 +208,7 @@ export default function DashboardPage() {
                     )
                   )}
                 </motion.p>
-                <p className="text-xs text-gray-500">in {selectedCurrency}</p>
+                <p className="text-xs text-gray-500">Assets − Liabilities</p>
               </div>
             </div>
           </motion.div>
@@ -236,7 +241,7 @@ export default function DashboardPage() {
         {/* Assets Card */}
         <AnimatedListItem>
           <motion.div whileHover={{ y: -4 }} className="stat-card">
-            <div className="flex items-center gap-4 ">
+            <div className="flex items-center gap-4">
               <motion.div
                 className="icon-container bg-green-50/80 border-green-100/50"
                 whileHover={{ scale: 1.1, rotate: 5 }}
@@ -247,6 +252,45 @@ export default function DashboardPage() {
                 <p className="text-sm text-gray-500">Total Assets</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {netWorthData?.assetCount || 0}
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        </AnimatedListItem>
+
+        {/* Liabilities Card */}
+        <AnimatedListItem>
+          <motion.div
+            whileHover={{ y: -4 }}
+            className="stat-card cursor-pointer"
+            onClick={() => router.push("/liabilities")}
+          >
+            <div className="flex items-center gap-4">
+              <motion.div
+                className="icon-container bg-red-50/80 border-red-100/50"
+                whileHover={{ scale: 1.1, rotate: 5 }}
+              >
+                <CreditCard className="h-6 w-6 text-red-500" />
+              </motion.div>
+              <div>
+                <p className="text-sm text-gray-500">Total Liabilities</p>
+                <motion.p
+                  className="text-2xl font-bold text-gray-900"
+                  key={netWorthData?.totalLiabilities}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                >
+                  {isRefreshing ? (
+                    <span className="opacity-50">Updating...</span>
+                  ) : (
+                    formatCurrency(
+                      netWorthData?.totalLiabilities || 0,
+                      selectedCurrency,
+                    )
+                  )}
+                </motion.p>
+                <p className="text-xs text-gray-500">
+                  {netWorthData?.liabilityCount || 0} debt(s)
                 </p>
               </div>
             </div>
@@ -357,6 +401,14 @@ export default function DashboardPage() {
                 desc: "Manage your existing portfolios",
               },
               {
+                href: "/liabilities/new",
+                icon: CreditCard,
+                iconBg: "bg-red-50/80",
+                iconColor: "text-red-500",
+                title: "Add Liability",
+                desc: "Track a debt or loan",
+              },
+              {
                 href: "/invitations",
                 icon: TrendingUp,
                 iconBg: "bg-purple-50/80",
@@ -398,6 +450,9 @@ export default function DashboardPage() {
           </div>
         </AnimatedCard>
       </div>
+
+      {/* Net Worth History Chart */}
+      <NetWorthChart currency={selectedCurrency} />
 
       {/* Asset Type Summary */}
       {netWorthData?.byType && Object.keys(netWorthData.byType).length > 0 && (

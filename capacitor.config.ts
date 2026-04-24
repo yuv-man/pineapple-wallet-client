@@ -1,39 +1,39 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
-// Build modes:
-// - Development (default): loads from localhost:3003
-// - Production (CAPACITOR_BUILD=true): loads from deployed Vercel URL
-const isProd = process.env.CAPACITOR_BUILD === "true";
+// Use CAPACITOR_LIVE_RELOAD=true when you want the native app to load
+// from the local Next.js dev server (hot reload during development).
+// By default (production builds), the app loads from the bundled `out/` directory.
+const isLiveReload = process.env.CAPACITOR_LIVE_RELOAD === "true";
 
 const config: CapacitorConfig = {
   appId: "com.pineapplewallet.app",
   appName: "PineappleWallet",
-  // Default Next build outputs to .next/; use `public/` for native shell assets.
-  // When using CAPACITOR_STATIC_EXPORT=true, copy/sync can still target `out/` via build:static if needed.
-  webDir: "public",
+  webDir: "out",
   plugins: {
+    SplashScreen: {
+      launchShowDuration: 1500,
+      launchAutoHide: true,
+    },
+    StatusBar: {
+      backgroundColor: "#ffffff",
+      style: "DARK",
+      overlaysWebView: false,
+    },
     App: {
       // Deep link configuration for OAuth callback
-      // This allows pineapplewallet:// scheme to open the app
     },
   },
-  server: isProd
-    ? {
-        // Production: load from deployed Vercel URL (handles dynamic routing)
-        url: "https://pineapple-wallet.vercel.app",
-        allowNavigation: [
-          "*.google.com",
-          "*.googleapis.com",
-          "*.onrender.com",
-          "*.vercel.app",
-        ],
-      }
-    : {
-        // Development: load from local dev server
-        url: "http://localhost:3003",
-        cleartext: true,
-        allowNavigation: ["*.google.com", "*.googleapis.com", "*.onrender.com"],
-      },
+  ...(isLiveReload && {
+    server: {
+      url: "http://localhost:3003",
+      cleartext: true,
+      allowNavigation: [
+        "*.google.com",
+        "*.googleapis.com",
+        "*.onrender.com",
+      ],
+    },
+  }),
 };
 
 export default config;

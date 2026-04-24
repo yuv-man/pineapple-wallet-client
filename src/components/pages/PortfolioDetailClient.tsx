@@ -32,6 +32,8 @@ import {
   Wallet,
   Eye,
   X,
+  Filter,
+  User,
 } from "lucide-react";
 import {
   PageTransition,
@@ -129,6 +131,8 @@ export default function PortfolioDetailClient() {
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [filterType, setFilterType] = useState<AssetType | null>(null);
+  const [filterUserId, setFilterUserId] = useState<string | null>(null);
 
   const { user } = useAuthStore();
   const {
@@ -253,6 +257,26 @@ export default function PortfolioDetailClient() {
   };
 
   const totalInDisplayCurrency = calculateTotalInDisplayCurrency();
+
+  // Derive unique users who have added assets
+  const assetContributors = portfolio
+    ? Array.from(
+        new Map(
+          portfolio.assets
+            .filter((a) => a.addedBy)
+            .map((a) => [a.addedBy!.id, a.addedBy!]),
+        ).values(),
+      )
+    : [];
+
+  // Apply filters
+  const filteredAssets = portfolio
+    ? portfolio.assets.filter((a) => {
+        if (filterType && a.type !== filterType) return false;
+        if (filterUserId && a.addedBy?.id !== filterUserId) return false;
+        return true;
+      })
+    : [];
 
   return (
     <PageTransition>
@@ -409,7 +433,90 @@ export default function PortfolioDetailClient() {
         transition={{ delay: 0.2, duration: 0.4 }}
         className="mb-2"
       >
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Assets</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">Assets</h2>
+          {portfolio.assets.length > 0 && (
+            <span className="text-sm text-gray-500">
+              {filteredAssets.length === portfolio.assets.length
+                ? `${portfolio.assets.length} total`
+                : `${filteredAssets.length} of ${portfolio.assets.length}`}
+            </span>
+          )}
+        </div>
+
+        {/* Filters */}
+        {portfolio.assets.length > 0 && (
+          <div className="mb-4 space-y-2">
+            {/* Type filters */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <Filter className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+              <button
+                onClick={() => setFilterType(null)}
+                className={cn(
+                  "px-3 py-1 rounded-full text-xs font-medium transition-colors",
+                  filterType === null
+                    ? "bg-gray-900 text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200",
+                )}
+              >
+                All Types
+              </button>
+              {(Object.keys(AssetType) as AssetType[])
+                .filter((t) => portfolio.assets.some((a) => a.type === t))
+                .map((type) => (
+                  <button
+                    key={type}
+                    onClick={() =>
+                      setFilterType(filterType === type ? null : type)
+                    }
+                    className={cn(
+                      "px-3 py-1 rounded-full text-xs font-medium transition-colors",
+                      filterType === type
+                        ? "bg-gray-900 text-white"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200",
+                    )}
+                  >
+                    {ASSET_TYPE_LABELS[type]}
+                  </button>
+                ))}
+            </div>
+
+            {/* User filters — only when multiple contributors */}
+            {assetContributors.length > 1 && (
+              <div className="flex items-center gap-2 flex-wrap">
+                <User className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                <button
+                  onClick={() => setFilterUserId(null)}
+                  className={cn(
+                    "px-3 py-1 rounded-full text-xs font-medium transition-colors",
+                    filterUserId === null
+                      ? "bg-pineapple text-white"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200",
+                  )}
+                >
+                  All Members
+                </button>
+                {assetContributors.map((u) => (
+                  <button
+                    key={u.id}
+                    onClick={() =>
+                      setFilterUserId(filterUserId === u.id ? null : u.id)
+                    }
+                    className={cn(
+                      "px-3 py-1 rounded-full text-xs font-medium transition-colors",
+                      filterUserId === u.id
+                        ? "bg-pineapple text-white"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200",
+                    )}
+                  >
+                    {u.id === user?.id ? "You" : u.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {portfolio.assets.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -442,9 +549,17 @@ export default function PortfolioDetailClient() {
               </motion.div>
             )}
           </motion.div>
+        ) : filteredAssets.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-8 text-gray-500 text-sm"
+          >
+            No assets match the selected filters.
+          </motion.div>
         ) : (
           <AnimatedList className="flex flex-col gap-3">
-            {portfolio.assets.map((asset, index) => (
+            {filteredAssets.map((asset, index) => (
               <AnimatedListItem key={asset.id}>
                 <AssetRow
                   asset={asset}
@@ -453,6 +568,7 @@ export default function PortfolioDetailClient() {
                   displayCurrency={displayCurrency}
                   convert={convert}
                   getCryptoPrice={getCryptoPrice}
+                  currentUserId={user?.id}
                   index={index}
                 />
               </AnimatedListItem>
@@ -537,6 +653,7 @@ function AssetRow({
   displayCurrency,
   convert,
   getCryptoPrice,
+  currentUserId,
 }: {
   asset: Asset;
   canEdit: boolean;
@@ -544,6 +661,7 @@ function AssetRow({
   displayCurrency: string;
   convert: (amount: number, from: string, to: string) => number;
   getCryptoPrice: (symbol: string) => number | null;
+  currentUserId?: string;
   index?: number;
 }) {
   const [showActionModal, setShowActionModal] = useState(false);
@@ -634,6 +752,14 @@ function AssetRow({
             )}
             Updated {formatLongDate(asset.updatedAt)}
           </p>
+          {asset.addedBy && (
+            <p className="text-xs mt-0.5 text-gray-400 flex items-center gap-1">
+              <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-gray-200 text-gray-600 text-[9px] font-bold uppercase shrink-0">
+                {asset.addedBy.name.charAt(0)}
+              </span>
+              {asset.addedBy.id === currentUserId ? "Added by You" : `Added by ${asset.addedBy.name}`}
+            </p>
+          )}
         </div>
 
         {/* Amount (Right) */}
@@ -850,6 +976,17 @@ function AssetRow({
                     {formatLongDate(asset.updatedAt)}
                   </span>
                 </div>
+                {asset.addedBy && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Added by</span>
+                    <span className="font-medium text-gray-700 flex items-center gap-1.5">
+                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-200 text-gray-600 text-[10px] font-bold uppercase">
+                        {asset.addedBy.name.charAt(0)}
+                      </span>
+                      {asset.addedBy.id === currentUserId ? "You" : asset.addedBy.name}
+                    </span>
+                  </div>
+                )}
                 {asset.notes && (
                   <div>
                     <span className="text-gray-500 block mb-1">Notes</span>

@@ -221,6 +221,29 @@ export const propertyCategoriesApi = {
   delete: (id: string) => api.delete(`/property-categories/${id}`),
 };
 
+// Net Worth History API
+export const netWorthHistoryApi = {
+  getHistory: (days: number = 30, currency: string = "USD") =>
+    api.get("/net-worth-history", { params: { days, currency } }),
+  triggerSnapshot: () => api.post("/net-worth-history/snapshot-now"),
+};
+
+// Liabilities API
+export const liabilitiesApi = {
+  getAll: () => api.get("/liabilities"),
+  getOne: (id: string) => api.get(`/liabilities/${id}`),
+  create: (
+    data: Partial<import("@/types").Liability> & {
+      balance: number;
+      name: string;
+      type: string;
+    }
+  ) => api.post("/liabilities", data),
+  update: (id: string, data: Partial<import("@/types").Liability>) =>
+    api.patch(`/liabilities/${id}`, data),
+  delete: (id: string) => api.delete(`/liabilities/${id}`),
+};
+
 // Property Sharing API
 export const propertySharingApi = {
   shareProperty: (

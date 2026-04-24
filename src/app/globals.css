@@ -43,13 +43,22 @@
   }
 }
 
-/* Safe area insets for iOS devices */
+/* Safe area insets for iOS notch / Dynamic Island / home indicator */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .h-safe-area-inset-bottom {
     height: env(safe-area-inset-bottom);
   }
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+@supports (padding-top: env(safe-area-inset-top)) {
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  .mt-safe {
+    margin-top: env(safe-area-inset-top);
   }
 }
 

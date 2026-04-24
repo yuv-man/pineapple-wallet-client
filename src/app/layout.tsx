@@ -5,6 +5,7 @@ import { CapacitorInitializer } from '@/components/CapacitorInitializer';
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  viewportFit: 'cover', // required for iOS safe-area-inset-* CSS env vars
 };
 
 export const metadata: Metadata = {

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Wallet, Building2 } from "lucide-react";
+import { LayoutDashboard, Wallet, Building2, CreditCard } from "lucide-react";
 
 const navItems = [
   {
@@ -36,6 +36,16 @@ const navItems = [
     activeText: "text-salmon-dark",
     activeIcon: "text-salmon",
     glowColor: "shadow-glow-salmon",
+  },
+  {
+    name: "Liabilities",
+    href: "/liabilities",
+    icon: CreditCard,
+    color: "red",
+    activeGradient: "from-red-500/20 to-red-400/10",
+    activeText: "text-red-700",
+    activeIcon: "text-red-500",
+    glowColor: "shadow-[0_0_20px_rgba(239,68,68,0.3)]",
   },
 ];
 
@@ -80,7 +90,8 @@ export function BottomNav() {
                         "absolute -top-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full",
                         item.color === "pineapple" && "bg-pineapple",
                         item.color === "salmon" && "bg-salmon",
-                        item.color === "gray" && "bg-gray-500"
+                        item.color === "gray" && "bg-gray-500",
+                        item.color === "red" && "bg-red-500"
                       )}
                       transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     />
@@ -122,7 +133,8 @@ export function BottomNav() {
                         "absolute inset-0 rounded-2xl opacity-0",
                         item.color === "pineapple" && "bg-pineapple/20",
                         item.color === "salmon" && "bg-salmon/20",
-                        item.color === "gray" && "bg-gray-500/20"
+                        item.color === "gray" && "bg-gray-500/20",
+                        item.color === "red" && "bg-red-500/20"
                       )}
                       initial={{ opacity: 0.5, scale: 0.8 }}
                       animate={{ opacity: 0, scale: 1.2 }}
