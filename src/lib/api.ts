@@ -75,6 +75,7 @@ export const usersApi = {
 
 // Portfolios API
 export const portfoliosApi = {
+  
   getAll: () => api.get("/portfolios"),
   getOne: (id: string) => api.get(`/portfolios/${id}`),
   create: (data: { name: string; description?: string }) =>
@@ -110,6 +111,7 @@ export const assetsApi = {
       currency?: string;
       notes?: string;
       details?: Record<string, any>;
+      addedByUserId?: string;
     }
   ) => api.patch(`/assets/${id}`, data),
   delete: (id: string) => api.delete(`/assets/${id}`),

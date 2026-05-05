@@ -36,8 +36,11 @@ export function CapacitorInitializer() {
 
         // Handle app state changes
         if (Capacitor.isPluginAvailable('App')) {
-          App.addListener('appStateChange', ({ isActive }) => {
-            console.log('App state changed. Is active?', isActive);
+          App.addListener('appStateChange', () => {
+            // Avoid noisy logs in production; set NEXT_PUBLIC_DEBUG_APP=true to debug lifecycle.
+            if (process.env.NEXT_PUBLIC_DEBUG_APP === 'true') {
+              console.log('[Capacitor] appStateChange');
+            }
           });
 
           App.addListener('backButton', ({ canGoBack }) => {

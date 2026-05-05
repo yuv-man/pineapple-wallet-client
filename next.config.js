@@ -1,7 +1,11 @@
 /** @type {import('next').NextConfig} */
-// Static export cannot serve arbitrary /portfolios/[id] URLs (no RSC index.txt on disk).
-// Use default build + `next start` for local prod / dynamic routes. Opt in to export only when needed:
-//   CAPACITOR_STATIC_EXPORT=true npm run build
+// Static export for Capacitor mobile builds. Opt in via:
+//   CAPACITOR_STATIC_EXPORT=true npm run build   (or npm run build:static)
+//
+// trailingSlash is intentionally NOT set: with trailingSlash:true the RSC
+// payload for /portfolios is fetched as /portfolios/index.txt, which the
+// App Router matches as portfolios/[id] (id="index.txt") causing API 404s.
+// Without it, RSC payloads use /portfolios.txt — no route conflict.
 const staticExport =
   process.env.CAPACITOR_STATIC_EXPORT === "true" ||
   process.env.STATIC_EXPORT === "true";
@@ -10,7 +14,6 @@ const nextConfig = {
   ...(staticExport
     ? {
         output: "export",
-        trailingSlash: true,
       }
     : {}),
   images: {

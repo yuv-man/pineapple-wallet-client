@@ -36,6 +36,7 @@ export function Sidebar() {
   const { user, logout, refreshToken } = useAuthStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [pendingInvitationsCount, setPendingInvitationsCount] = useState(0);
+  const [avatarFailed, setAvatarFailed] = useState(false);
 
   // Fetch pending invitations count
   useEffect(() => {
@@ -163,54 +164,57 @@ export function Sidebar() {
       </nav>
 
       {/* User section */}
-      <div className="border-t border-white/30 p-4 mb-20">
+      <div className="border-t border-white/30 p-4">
         <div className="flex items-center gap-3 mb-3">
           <motion.div
-            className="w-10 h-10 rounded-xl bg-gradient-to-br from-pineapple/30 to-pineapple/10
-                       backdrop-blur-sm border border-pineapple/20
-                       flex items-center justify-center text-pineapple-dark font-semibold
-                       shadow-sm"
-            whileHover={{ scale: 1.05, rotate: 5 }}
+            className="relative w-10 h-10 rounded-xl overflow-hidden shrink-0
+                       bg-gradient-to-br from-pineapple/30 to-pineapple/10
+                       border border-pineapple/20 shadow-sm"
+            whileHover={{ scale: 1.05, rotate: 3 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
           >
-            {user?.name?.charAt(0).toUpperCase() || "U"}
+            {user?.avatar && !avatarFailed ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={user.avatar}
+                alt={user.name || "User"}
+                className="w-full h-full object-cover"
+                onError={() => setAvatarFailed(true)}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-pineapple-dark font-semibold text-sm">
+                {user?.name?.charAt(0).toUpperCase() || "U"}
+              </div>
+            )}
           </motion.div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">
-              {user?.name}
-            </p>
+            <p className="text-sm font-medium text-gray-900 truncate">{user?.name}</p>
             <p className="text-xs text-gray-500 truncate">{user?.email}</p>
           </div>
         </div>
         <div className="flex gap-2">
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="flex-1"
-          >
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} className="flex-1">
             <Link
               href="/settings"
-              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl
+              className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl
                          bg-white/40 backdrop-blur-sm border border-white/50
                          text-gray-600 hover:bg-white/60 hover:text-gray-900
-                         transition-all duration-300 text-sm"
+                         transition-all duration-300 text-xs font-medium"
             >
-              <Settings className="h-4 w-4" />
+              <Settings className="h-3.5 w-3.5" />
+              Settings
             </Link>
           </motion.div>
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="flex-1"
-          >
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} className="flex-1">
             <button
               onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl
+              className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl
                          bg-red-50/50 backdrop-blur-sm border border-red-100/50
-                         text-red-600 hover:bg-red-100/50
-                         transition-all duration-300 text-sm"
+                         text-red-500 hover:bg-red-100/50 hover:text-red-600
+                         transition-all duration-300 text-xs font-medium"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-3.5 w-3.5" />
+              Sign out
             </button>
           </motion.div>
         </div>

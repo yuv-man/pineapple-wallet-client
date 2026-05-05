@@ -154,10 +154,7 @@ export default function PortfolioDetailClient() {
   }, [rates, fetchRates]);
 
   useEffect(() => {
-    if (!portfolioId) {
-      router.replace("/portfolios");
-      return;
-    }
+    if (!portfolioId) return;
 
     const fetchPortfolio = async () => {
       try {
@@ -481,8 +478,8 @@ export default function PortfolioDetailClient() {
                 ))}
             </div>
 
-            {/* User filters — only when multiple contributors */}
-            {assetContributors.length > 1 && (
+            {/* User filters */}
+            {assetContributors.length >= 1 && (
               <div className="flex items-center gap-2 flex-wrap">
                 <User className="h-3.5 w-3.5 text-gray-400 shrink-0" />
                 <button
@@ -503,12 +500,13 @@ export default function PortfolioDetailClient() {
                       setFilterUserId(filterUserId === u.id ? null : u.id)
                     }
                     className={cn(
-                      "px-3 py-1 rounded-full text-xs font-medium transition-colors",
+                      "flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-colors",
                       filterUserId === u.id
                         ? "bg-pineapple text-white"
                         : "bg-gray-100 text-gray-600 hover:bg-gray-200",
                     )}
                   >
+                    <UserAvatar name={u.name} avatar={u.avatar} size="sm" />
                     {u.id === user?.id ? "You" : u.name}
                   </button>
                 ))}
@@ -646,6 +644,27 @@ export default function PortfolioDetailClient() {
   );
 }
 
+function UserAvatar({ name, avatar, size = "sm" }: { name: string; avatar?: string; size?: "sm" | "md" }) {
+  const [imgFailed, setImgFailed] = useState(false);
+  const dim = size === "sm" ? "w-4 h-4 text-[9px]" : "w-5 h-5 text-[10px]";
+  if (avatar && !imgFailed) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={avatar}
+        alt={name}
+        className={cn("rounded-full object-cover shrink-0", dim)}
+        onError={() => setImgFailed(true)}
+      />
+    );
+  }
+  return (
+    <span className={cn("inline-flex items-center justify-center rounded-full bg-gray-200 text-gray-600 font-bold uppercase shrink-0", dim)}>
+      {name.charAt(0)}
+    </span>
+  );
+}
+
 function AssetRow({
   asset,
   canEdit,
@@ -697,6 +716,14 @@ function AssetRow({
   };
 
   const convertedValue = getConvertedValue();
+
+  // Profit vs initial value — only meaningful when there are 2+ history entries
+  const history = asset.valueHistory ?? [];
+  const initialValue = history.length >= 2 ? Number(history[0].value) : null;
+  const profit = initialValue !== null ? Number(asset.value) - initialValue : null;
+  const profitPct = initialValue !== null && initialValue !== 0
+    ? (profit! / initialValue) * 100
+    : null;
 
   return (
     <>
@@ -754,10 +781,8 @@ function AssetRow({
           </p>
           {asset.addedBy && (
             <p className="text-xs mt-0.5 text-gray-400 flex items-center gap-1">
-              <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-gray-200 text-gray-600 text-[9px] font-bold uppercase shrink-0">
-                {asset.addedBy.name.charAt(0)}
-              </span>
-              {asset.addedBy.id === currentUserId ? "Added by You" : `Added by ${asset.addedBy.name}`}
+              <UserAvatar name={asset.addedBy.name} avatar={asset.addedBy.avatar} size="sm" />
+              {asset.addedBy.id === currentUserId ? "You" : asset.addedBy.name}
             </p>
           )}
         </div>
@@ -789,6 +814,18 @@ function AssetRow({
                 </p>
               )}
             </>
+          )}
+          {profit !== null && profitPct !== null && (
+            <p className={cn(
+              "text-xs tabular-nums font-medium mt-0.5",
+              profit > 0 ? "text-green-600" : profit < 0 ? "text-red-500" : "text-gray-400",
+            )}>
+              {profit > 0 ? "+" : ""}
+              {isCrypto && isCryptoCurrency
+                ? `${profit.toLocaleString(undefined, { maximumFractionDigits: 8 })} ${ticker}`
+                : formatCurrency(profit, asset.currency)}
+              {" "}({profit >= 0 ? "+" : ""}{profitPct.toFixed(1)}%)
+            </p>
           )}
         </div>
       </motion.div>
@@ -944,13 +981,38 @@ function AssetRow({
               {/* Details */}
               <div className="space-y-4">
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Value</span>
+                  <span className="text-gray-500">Current Value</span>
                   <span className="font-semibold text-gray-900">
                     {isCrypto && isCryptoCurrency
                       ? `${Number(asset.value).toLocaleString(undefined, { maximumFractionDigits: 8 })} ${ticker}`
                       : formatCurrency(Number(asset.value), asset.currency)}
                   </span>
                 </div>
+                {initialValue !== null && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Initial Value</span>
+                    <span className="font-medium text-gray-700">
+                      {isCrypto && isCryptoCurrency
+                        ? `${initialValue.toLocaleString(undefined, { maximumFractionDigits: 8 })} ${ticker}`
+                        : formatCurrency(initialValue, asset.currency)}
+                    </span>
+                  </div>
+                )}
+                {profit !== null && profitPct !== null && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-500">Profit / Change</span>
+                    <span className={cn(
+                      "font-semibold tabular-nums",
+                      profit > 0 ? "text-green-600" : profit < 0 ? "text-red-500" : "text-gray-500",
+                    )}>
+                      {profit > 0 ? "+" : ""}
+                      {isCrypto && isCryptoCurrency
+                        ? `${profit.toLocaleString(undefined, { maximumFractionDigits: 8 })} ${ticker}`
+                        : formatCurrency(profit, asset.currency)}
+                      {" "}({profit >= 0 ? "+" : ""}{profitPct.toFixed(1)}%)
+                    </span>
+                  </div>
+                )}
                 {convertedValue !== null && (
                   <div className="flex justify-between">
                     <span className="text-gray-500">Converted</span>
@@ -980,9 +1042,7 @@ function AssetRow({
                   <div className="flex justify-between">
                     <span className="text-gray-500">Added by</span>
                     <span className="font-medium text-gray-700 flex items-center gap-1.5">
-                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-200 text-gray-600 text-[10px] font-bold uppercase">
-                        {asset.addedBy.name.charAt(0)}
-                      </span>
+                      <UserAvatar name={asset.addedBy.name} avatar={asset.addedBy.avatar} size="md" />
                       {asset.addedBy.id === currentUserId ? "You" : asset.addedBy.name}
                     </span>
                   </div>

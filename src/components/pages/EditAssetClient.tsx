@@ -7,10 +7,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { assetsApi } from '@/lib/api';
+import { assetsApi, portfoliosApi } from '@/lib/api';
+import { useAuthStore } from '@/store/auth';
 import { useCurrencyStore } from '@/store/currency';
-import { Asset, AssetType, ASSET_TYPE_LABELS } from '@/types';
-import { ArrowLeft, Loader2, RefreshCw, Home, Landmark, Bitcoin, TrendingUp, PiggyBank } from 'lucide-react';
+import { Asset, AssetType, ASSET_TYPE_LABELS, User } from '@/types';
+import { ArrowLeft, Loader2, RefreshCw, Home, Landmark, Bitcoin, TrendingUp, PiggyBank, User as UserIcon } from 'lucide-react';
 import { PageTransition } from '@/components/animations';
 
 const ASSET_ICONS: Record<AssetType, React.ElementType> = {
@@ -27,6 +28,7 @@ const assetSchema = z.object({
   currency: z.string(),
   notes: z.string().max(1000).optional(),
   details: z.record(z.any()).optional(),
+  addedByUserId: z.string().optional(),
 });
 
 type AssetForm = z.infer<typeof assetSchema>;
@@ -38,9 +40,11 @@ export default function EditAssetClient() {
   const params = useParams();
   const router = useRouter();
   const [asset, setAsset] = useState<Asset | null>(null);
+  const [members, setMembers] = useState<User[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const { user: currentUser } = useAuthStore();
 
   // Crypto-specific state
   const [cryptoInputMode, setCryptoInputMode] = useState<'crypto' | 'fiat'>('crypto');
@@ -79,6 +83,24 @@ export default function EditAssetClient() {
         setValue('currency', assetData.currency);
         setValue('notes', assetData.notes || '');
         setValue('details', assetData.details || {});
+        if (assetData.addedByUserId) {
+          setValue('addedByUserId', assetData.addedByUserId);
+        }
+
+        // Fetch portfolio members for the "Added by" selector
+        try {
+          const portfolioRes = await portfoliosApi.getOne(assetData.portfolioId);
+          const p = portfolioRes.data;
+          const allMembers: User[] = [
+            p.user,
+            ...p.shares
+              .filter((s: any) => s.status === 'ACCEPTED')
+              .map((s: any) => s.sharedWithUser),
+          ];
+          setMembers(allMembers);
+        } catch {
+          // non-critical — member selector will be hidden
+        }
 
         // Initialize crypto fields (new model: value = coin qty, currency = ticker; legacy: fiat in value)
         if (assetData.type === AssetType.CRYPTO) {
@@ -341,6 +363,30 @@ export default function EditAssetClient() {
                 {...register('notes')}
               />
             </motion.div>
+
+            {members.length > 1 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.45 }}
+              >
+                <label htmlFor="addedByUserId" className="label flex items-center gap-1.5">
+                  <UserIcon className="h-3.5 w-3.5 text-gray-400" />
+                  Added by
+                </label>
+                <select
+                  id="addedByUserId"
+                  className="input mt-1"
+                  {...register('addedByUserId')}
+                >
+                  {members.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.id === currentUser?.id ? `${m.name} (You)` : m.name}
+                    </option>
+                  ))}
+                </select>
+              </motion.div>
+            )}
 
             <motion.div
               initial={{ opacity: 0, y: 10 }}
